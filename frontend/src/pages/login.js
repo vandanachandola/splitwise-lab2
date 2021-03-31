@@ -41,23 +41,25 @@ class Login extends Component {
         console.log(response);
         if (response.status === 200) {
           const user = {
-            emailId,
-            password,
+            id: response.data.result._id,
+            emailId: response.data.result.emailId,
+            name: response.data.result.name,
+            token: response.data.token,
           };
           const alert = {
             type: AlertType.Success,
-            message: response.data.message.message,
+            message: response.data.message,
           };
           this.props.setCurrentUser(user);
           this.props.setAlertMessage(alert);
         }
       })
       .catch((err) => {
-        console.log(err.response.data.message.message);
+        console.log(err.response.data.message);
         if (err.response.status === 401 || err.response.status === 404) {
           const alert = {
             type: AlertType.Error,
-            message: err.response.data.message.message,
+            message: err.response.data.message,
           };
           this.props.setAlertMessage(alert);
         }

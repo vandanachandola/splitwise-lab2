@@ -47,9 +47,10 @@ class Signup extends Component {
         console.log(response);
         if (response.status === 200) {
           const user = {
-            emailId,
-            password,
-            name,
+            id: response.data.result._id,
+            emailId: response.data.result.emailId,
+            name: response.data.result.name,
+            token: response.data.token,
           };
           const alert = {
             type: AlertType.Success,

@@ -1,8 +1,10 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const HttpCodes = require('../enums/http-codes');
 const HttpResponse = require('../models/http-response');
 const User = require('../models/user');
+const config = require('../config');
 
 // login existing user
 const login = async (req, res) => {
@@ -12,11 +14,24 @@ const login = async (req, res) => {
     if (user) {
       const validPass = await bcrypt.compare(password, user.password);
       if (validPass) {
-        res.status(HttpCodes.OK).send(
-          new HttpResponse({
-            message: 'You have successfully logged in.',
-            result: user,
-          })
+        const payload = {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        };
+
+        jwt.sign(
+          payload,
+          config.auth.secretOrKey,
+          { expiresIn: 31556926 },
+          (err, token) => {
+            console.log('token', token);
+            res.status(HttpCodes.OK).send({
+              message: 'You have successfully logged in.',
+              result: user,
+              token: `Bearer ${token}`,
+            });
+          }
         );
       } else {
         res.status(HttpCodes.UnauthorizedClient).send(
@@ -71,7 +86,26 @@ const signup = async (req, res) => {
       name,
     });
     try {
-      await newUser.save();
+      const user = await newUser.save();
+      const payload = {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      };
+
+      jwt.sign(
+        payload,
+        config.auth.secretOrKey,
+        { expiresIn: 31556926 },
+        (err, token) => {
+          console.log('token', token);
+          res.status(HttpCodes.OK).send({
+            message: 'You have successfully signed up.',
+            result: user,
+            token: `Bearer ${token}`,
+          });
+        }
+      );
     } catch (err) {
       res.status(HttpCodes.UnauthorizedClient).send({
         message: 'Signup failed, please try again.',

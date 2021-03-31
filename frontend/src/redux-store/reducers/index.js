@@ -1,10 +1,14 @@
 import isEmpty from 'lodash/isEmpty';
+// import UserAuth from '../../shared/user-auth';
 import { SET_CURR_USER, SET_ALERT_MSG } from '../constants/action-types';
 
 const initialState = {
   currentUser: {
+    id: '',
     emailId: '',
-    password: '',
+    name: '',
+    // profilePicture: UserAuth.getProfilePicture(),
+    token: '',
   },
   isAuthenticated: false,
   alert: {
@@ -22,10 +26,7 @@ function rootReducer(state = initialState, action = {}) {
       };
     case SET_ALERT_MSG:
       return {
-        alert: {
-          type: action.payload.type,
-          message: action.payload.message,
-        },
+        alert: action.payload,
       };
     default:
       return state;

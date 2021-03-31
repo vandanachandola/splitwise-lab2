@@ -11,6 +11,7 @@
         "no-console": "off",
         "func-names": "off",
         "class-methods-use-this": "off",
-        "no-undef": "off"
+        "no-undef": "off",
+        "no-underscore-dangle": "off"
     }
 }
