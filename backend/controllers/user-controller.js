@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { ObjectId } = require('mongodb');
 
 const HttpCodes = require('../enums/http-codes');
 const HttpResponse = require('../models/http-response');
@@ -62,7 +63,6 @@ const login = async (req, res) => {
 // signup new user
 const signup = async (req, res) => {
   const { emailId, password, name } = req.body;
-
   let existingUser;
   try {
     existingUser = await User.findOne({ emailId });
@@ -84,7 +84,13 @@ const signup = async (req, res) => {
       emailId,
       password: hash,
       name,
+      profilePicture: null,
+      phoneNo: null,
+      defaultCurrency: null,
+      timeZone: null,
+      language: null,
     });
+
     try {
       const user = await newUser.save();
       const payload = {
@@ -115,5 +121,77 @@ const signup = async (req, res) => {
   }
 };
 
+// get user profile details
+const getProfile = async (req, res) => {
+  User.findOne({ _id: req.query.id })
+    .then((user) => {
+      res.status(HttpCodes.OK).send({
+        message: 'Request successful.',
+        result: user,
+      });
+    })
+    .catch((err) =>
+      res.status(HttpCodes.NotFound).send({
+        message: 'Could not fetch user profile data.',
+        result: err,
+      })
+    );
+};
+
+// set user profile details
+const setProfile = async (req, res) => {
+  const {
+    id,
+    emailId,
+    name,
+    phoneNo,
+    defaultCurrency,
+    timeZone,
+    language,
+  } = req.body;
+  // const user = await User.findOne({ _id: id });
+  // console.log(req);
+  const profilePicture = req.file ? req.file.path.replace(/\\/g, '/') : null;
+
+  try {
+    await User.updateOne(
+      { _id: ObjectId(id) },
+      {
+        $set: {
+          emailId,
+          name,
+          phoneNo,
+          defaultCurrency,
+          timeZone,
+          language,
+          profilePicture,
+        },
+      },
+      { new: true },
+      (err, resp) => {
+        if (resp) {
+          res.status(HttpCodes.OK).send({
+            message: 'Your changes have been successfully saved.',
+            result: resp,
+          });
+        } else {
+          res.status(HttpCodes.InternalServerError).send({
+            message:
+              'This user profile was not found. Try refreshing your page.',
+            result: null,
+          });
+        }
+      }
+    );
+  } catch (err) {
+    res.status(HttpCodes.InternalServerError).send({
+      message: 'Unable to save changes, some error occured.',
+      result: err,
+    });
+  }
+};
+
 exports.login = login;
 exports.signup = signup;
+exports.getProfile = getProfile;
+exports.setProfile = setProfile;

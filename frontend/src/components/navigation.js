@@ -1,16 +1,16 @@
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
-import { useDispatch, connect } from 'react-redux';
+import { connect } from 'react-redux';
 import Avatar from '@material-ui/core/Avatar';
 
 import defaultAvatar from '../images/default-avatar.png';
 import logo from '../images/default-group-logo.svg';
 import config from '../shared/config';
+import { logoutCurrentUser } from '../redux-store/actions/index';
 
 const Navigation = (props) => {
   const history = useHistory();
-  const dispatch = useDispatch();
   const { userName, profilePicture } = props;
 
   return (
@@ -106,7 +106,7 @@ const Navigation = (props) => {
                 <NavDropdown.Divider />
                 <NavDropdown.Item
                   onClick={() => {
-                    dispatch(logoutUser());
+                    props.logoutCurrentUser();
                     history.push('/login');
                   }}
                 >
@@ -127,4 +127,11 @@ function mapStateToProps(state) {
     profilePicture: state.currentUser ? state.currentUser.profilePicture : null,
   };
 }
-export default connect(mapStateToProps)(Navigation);
+
+function mapDispatchToProps(dispatch) {
+  return {
+    logoutCurrentUser: () => dispatch(logoutCurrentUser()),
+  };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Navigation);

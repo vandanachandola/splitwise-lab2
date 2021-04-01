@@ -61,7 +61,6 @@ class Signup extends Component {
         }
       })
       .catch((err) => {
-        console.log(err.response.data.message.message);
         if (err.response.status === 401 || err.response.status === 404) {
           const alert = {
             type: AlertType.Error,

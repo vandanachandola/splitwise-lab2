@@ -6,10 +6,9 @@ const UserAuth = (() => {
 
   const setUserData = (userCredentials) => {
     const credentials = JSON.stringify({
-      id: userCredentials._id,
+      id: userCredentials.id,
       name: userCredentials.name,
-      // emailId: userCredentials.emailId,
-      // profilePicture: userCredentials.profilePicture,
+      profilePicture: userCredentials.profilePicture,
       token: userCredentials.token,
     });
     windowGlobal.localStorage.setItem('curr_user_cred', credentials);
@@ -18,23 +17,20 @@ const UserAuth = (() => {
   const logout = () => {
     windowGlobal.localStorage.removeItem('curr_user_cred');
   };
-  const getUserId = () => (getUserData() ? getUserData()._id : '');
+  const getUserId = () => (getUserData() ? getUserData().id : '');
 
   const getName = () => (getUserData() ? getUserData().name : '');
 
-  // const getEmail = () => (getUserData() ? getUserData().emailId : '');
-
   const getUserToken = () => (getUserData() ? getUserData().token : '');
 
-  // const getProfilePicture = () =>
-  //   getUserData() ? getUserData().profilePicture : '';
+  const getProfilePicture = () =>
+    getUserData() ? getUserData().profilePicture : '';
 
   return {
     getUserId,
     getName,
-    // getEmail,
     getUserToken,
-    // getProfilePicture,
+    getProfilePicture,
     setUserData,
     logout,
   };

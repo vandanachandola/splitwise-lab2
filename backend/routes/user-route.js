@@ -2,6 +2,7 @@ const express = require('express');
 const { check } = require('express-validator');
 
 const userController = require('../controllers/user-controller');
+const fileUpload = require('../middleware/file-upload');
 
 const router = express.Router();
 
@@ -21,6 +22,17 @@ router.post(
     check('password').isLength({ min: 6 }),
   ],
   userController.signup
+);
+
+// get user profile
+router.get('/profile', userController.getProfile);
+
+// set user profile
+router.post(
+  '/profile',
+  fileUpload.single('profilePicture'),
+  [check('name').not().isEmpty()],
+  userController.setProfile
 );
 
 module.exports = router;
