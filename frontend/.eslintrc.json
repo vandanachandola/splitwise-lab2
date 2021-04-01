@@ -6,6 +6,7 @@
         "react/prop-types": "off",
         "react/no-array-index-key": "off",
         "react/destructuring-assignment": "off",
+        "react/jsx-props-no-spreading": "off",
         "prettier/prettier": ["error", {"singleQuote": true, "parser": "flow", "endOfLine": "auto"}],
         "no-unused-vars": "warn",
         "no-console": "off",

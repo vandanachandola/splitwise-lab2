@@ -29,7 +29,7 @@ const login = async (req, res) => {
             res.status(HttpCodes.OK).send({
               message: 'You have successfully logged in.',
               result: user,
-              token: `Bearer ${token}`,
+              token: `${token}`,
             });
           }
         );
@@ -102,7 +102,7 @@ const signup = async (req, res) => {
           res.status(HttpCodes.OK).send({
             message: 'You have successfully signed up.',
             result: user,
-            token: `Bearer ${token}`,
+            token: `${token}`,
           });
         }
       );

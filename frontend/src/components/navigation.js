@@ -4,17 +4,14 @@ import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import { useDispatch, connect } from 'react-redux';
 import Avatar from '@material-ui/core/Avatar';
 
-// import UserAuth from './user-auth';
 import defaultAvatar from '../images/default-avatar.png';
 import logo from '../images/default-group-logo.svg';
 import config from '../shared/config';
 
 const Navigation = (props) => {
   const history = useHistory();
-  const userName = 'vandana';
-  //   const userName = UserAuth.getName();
   const dispatch = useDispatch();
-  const { profilePicture } = props;
+  const { userName, profilePicture } = props;
 
   return (
     <Navbar
@@ -126,6 +123,7 @@ const Navigation = (props) => {
 
 function mapStateToProps(state) {
   return {
+    userName: state.currentUser ? state.currentUser.name : null,
     profilePicture: state.currentUser ? state.currentUser.profilePicture : null,
   };
 }

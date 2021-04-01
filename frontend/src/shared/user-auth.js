@@ -7,7 +7,7 @@ const UserAuth = (() => {
   const setUserData = (userCredentials) => {
     const credentials = JSON.stringify({
       id: userCredentials._id,
-      // name: userCredentials.name,
+      name: userCredentials.name,
       // emailId: userCredentials.emailId,
       // profilePicture: userCredentials.profilePicture,
       token: userCredentials.token,
@@ -20,7 +20,7 @@ const UserAuth = (() => {
   };
   const getUserId = () => (getUserData() ? getUserData()._id : '');
 
-  // const getName = () => (getUserData() ? getUserData().name : '');
+  const getName = () => (getUserData() ? getUserData().name : '');
 
   // const getEmail = () => (getUserData() ? getUserData().emailId : '');
 
@@ -31,7 +31,7 @@ const UserAuth = (() => {
 
   return {
     getUserId,
-    // getName,
+    getName,
     // getEmail,
     getUserToken,
     // getProfilePicture,
