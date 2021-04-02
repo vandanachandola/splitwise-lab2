@@ -38,7 +38,21 @@ function rootReducer(state = initialState, action = {}) {
     case SET_USER_PROFILE:
       return {
         ...state,
-        currentUser: action.payload,
+        currentUser: {
+          ...state.currentUser,
+          emailId:
+            action.payload.emailId !== currentUser.emailId
+              ? action.payload.emailId
+              : currentUser.emailId,
+          name:
+            action.payload.name !== currentUser.name
+              ? action.payload.name
+              : currentUser.name,
+          profilePicture:
+            action.payload.profilePicture !== currentUser.profilePicture
+              ? action.payload.profilePicture
+              : currentUser.profilePicture,
+        },
       };
     case LOGOUT_CURR_USER:
       return {

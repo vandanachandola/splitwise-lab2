@@ -38,7 +38,6 @@ class Login extends Component {
     axios
       .post(`${config.server.url}/api/users/login`, data)
       .then((response) => {
-        console.log(response);
         if (response.status === 200) {
           const user = {
             id: response.data.result._id,
@@ -48,18 +47,17 @@ class Login extends Component {
           };
           const alert = {
             type: AlertType.Success,
-            message: response.data.message,
+            message: response.data.message.message,
           };
           this.props.setCurrentUser(user);
           this.props.setAlertMessage(alert);
         }
       })
       .catch((err) => {
-        console.log(err.response.data.message);
         if (err.response.status === 401 || err.response.status === 404) {
           const alert = {
             type: AlertType.Error,
-            message: err.response.data.message,
+            message: err.response.data.message.message,
           };
           this.props.setAlertMessage(alert);
         }

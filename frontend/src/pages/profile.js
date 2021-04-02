@@ -94,14 +94,14 @@ class Profile extends Component {
       .then((response) => {
         if (response.status === 200) {
           const user = {
-            id: response.data.result._id,
-            profilePicture: response.data.result.profilePicture,
-            emailId: response.data.result.emailId,
-            name: response.data.result.name,
-            phoneNo: response.data.phoneNo,
-            defaultCurrency: response.data.defaultCurrency,
-            timeZone: response.data.timeZone,
-            language: response.data.language,
+            id: response.result._id,
+            profilePicture: response.result.profilePicture,
+            emailId: response.result.emailId,
+            name: response.result.name,
+            phoneNo: response.result.phoneNo,
+            defaultCurrency: response.result.defaultCurrency,
+            timeZone: response.result.timeZone,
+            language: response.result.language,
           };
           const alert = {
             type: AlertType.Success,

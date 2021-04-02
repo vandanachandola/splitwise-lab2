@@ -154,7 +154,7 @@ const setProfile = async (req, res) => {
   const profilePicture = req.file ? req.file.path.replace(/\\/g, '/') : null;
 
   try {
-    await User.updateOne(
+    await User.findByIdAndUpdate(
       { _id: ObjectId(id) },
       {
         $set: {
@@ -167,7 +167,7 @@ const setProfile = async (req, res) => {
           profilePicture,
         },
       },
-      { new: true },
+      { lean: true },
       (err, resp) => {
         if (resp) {
           res.status(HttpCodes.OK).send({

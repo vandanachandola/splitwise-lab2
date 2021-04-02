@@ -17,8 +17,6 @@ export function setAlertMessage(payload) {
 export function setCurrentUser(payload) {
   UserAuth.setUserData({
     id: payload.id,
-    name: payload.name,
-    emailId: payload.emailId,
     token: payload.token,
   });
   return {
@@ -29,11 +27,6 @@ export function setCurrentUser(payload) {
 
 // action to set user profile data
 export function setUserProfile(payload) {
-  UserAuth.setUserData({
-    profilePicture: payload.profilePicture,
-    emailId: payload.emailId,
-    name: payload.name,
-  });
   return {
     type: SET_USER_PROFILE,
     payload,
