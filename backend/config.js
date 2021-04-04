@@ -11,4 +11,11 @@ config.server.port = process.env.PORT || 5000;
 config.auth = {};
 config.auth.secretOrKey = 'secret';
 
+config.awss3 = {};
+config.awss3.AWS_ACCESS_KEY_ID = 'AKIAQ5M2SXSO3GK54E7H';
+config.awss3.AWS_SECRET_ACCESS_KEY = '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';
+config.awss3.AWS_S3_BUCKET_NAME = 'splitwise-lab2-bucket';
+config.awss3.AWS_LOCATION = 'us-east-2';
+config.awss3.AWS_ACL_ACCESS_CONTROL = 'public-read';
+
 module.exports = config;

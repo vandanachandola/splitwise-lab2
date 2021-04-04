@@ -12,9 +12,17 @@ const initialState = {
   currentUser: {
     id: '',
     emailId: '',
-    name: UserAuth.getName(),
-    profilePicture: UserAuth.getProfilePicture(),
     token: '',
+  },
+  userProfile: {
+    id: '',
+    profilePicture: UserAuth.getProfilePicture(),
+    name: UserAuth.getName(),
+    emailId: '',
+    phoneNo: '',
+    defaultCurrency: '',
+    timeZone: '',
+    language: '',
   },
   isAuthenticated: false,
   alert: {
@@ -27,6 +35,7 @@ function rootReducer(state = initialState, action = {}) {
   switch (action.type) {
     case SET_CURR_USER:
       return {
+        ...state,
         currentUser: action.payload,
         isAuthenticated: !isEmpty(action.payload),
       };
@@ -38,21 +47,7 @@ function rootReducer(state = initialState, action = {}) {
     case SET_USER_PROFILE:
       return {
         ...state,
-        currentUser: {
-          ...state.currentUser,
-          emailId:
-            action.payload.emailId !== currentUser.emailId
-              ? action.payload.emailId
-              : currentUser.emailId,
-          name:
-            action.payload.name !== currentUser.name
-              ? action.payload.name
-              : currentUser.name,
-          profilePicture:
-            action.payload.profilePicture !== currentUser.profilePicture
-              ? action.payload.profilePicture
-              : currentUser.profilePicture,
-        },
+        userProfile: action.payload,
       };
     case LOGOUT_CURR_USER:
       return {

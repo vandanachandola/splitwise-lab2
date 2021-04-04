@@ -3,6 +3,7 @@ import {
   SET_CURR_USER,
   SET_ALERT_MSG,
   LOGOUT_CURR_USER,
+  SET_USER_PROFILE,
 } from '../constants/action-types';
 
 // action to display alert messages

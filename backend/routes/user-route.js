@@ -2,7 +2,7 @@ const express = require('express');
 const { check } = require('express-validator');
 
 const userController = require('../controllers/user-controller');
-const fileUpload = require('../middleware/file-upload');
+const upload = require('../middleware/image-upload');
 
 const router = express.Router();
 
@@ -30,9 +30,11 @@ router.get('/profile', userController.getProfile);
 // set user profile
 router.post(
   '/profile',
-  fileUpload.single('profilePicture'),
-  [check('name').not().isEmpty()],
+  upload.single('profilePicture'),
+  [],
   userController.setProfile
 );
+
+router.post('/image-upload', userController.imageUpload);
 
 module.exports = router;

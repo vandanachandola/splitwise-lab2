@@ -41,10 +41,8 @@ class Profile extends Component {
       .then((response) => {
         if (response.status === 200) {
           const data = response.data.result;
-          this.setState((prevState) => ({
-            profilePicture: data.profilePicture
-              ? `${config.server.url}/${data.profilePicture}`
-              : prevState.profilePicture,
+          this.setState({
+            profilePicture: data.profilePicture,
             name: data.name,
             emailId: data.emailId,
             phoneNo: data.phoneNo ? data.phoneNo : '',
@@ -53,7 +51,7 @@ class Profile extends Component {
               : 'USD',
             timeZone: data.timeZone ? data.timeZone : '-08:00',
             language: data.language ? data.language : 'English',
-          }));
+          });
         }
       })
       .catch((err) => {
@@ -94,14 +92,14 @@ class Profile extends Component {
       .then((response) => {
         if (response.status === 200) {
           const user = {
-            id: response.result._id,
-            profilePicture: response.result.profilePicture,
-            emailId: response.result.emailId,
-            name: response.result.name,
-            phoneNo: response.result.phoneNo,
-            defaultCurrency: response.result.defaultCurrency,
-            timeZone: response.result.timeZone,
-            language: response.result.language,
+            id: response.data.result._id,
+            profilePicture: response.data.result.profilePicture,
+            emailId: response.data.result.emailId,
+            name: response.data.result.name,
+            phoneNo: response.data.result.phoneNo,
+            defaultCurrency: response.data.result.defaultCurrency,
+            timeZone: response.data.result.timeZone,
+            language: response.data.result.language,
           };
           const alert = {
             type: AlertType.Success,
@@ -113,7 +111,7 @@ class Profile extends Component {
         return response.data.result;
       })
       .catch((err) => {
-        if (err.response.status === 500) {
+        if (err.response.status === 500 || err.response.status === 422) {
           const alert = {
             type: AlertType.Error,
             message: err.response.data.message,
@@ -361,6 +359,8 @@ class Profile extends Component {
 function mapStateToProps(state) {
   return {
     profilePicture: state.profilePicture,
+    isAuthenticated: state.isAuthenticated,
+    alert: state.alert,
   };
 }
 

@@ -6,6 +6,7 @@ const HttpCodes = require('../enums/http-codes');
 const HttpResponse = require('../models/http-response');
 const User = require('../models/user');
 const config = require('../config');
+const upload = require('../middleware/image-upload');
 
 // login existing user
 const login = async (req, res) => {
@@ -149,10 +150,15 @@ const setProfile = async (req, res) => {
     timeZone,
     language,
   } = req.body;
-  // const user = await User.findOne({ _id: id });
-  // console.log(req);
-  const profilePicture = req.file ? req.file.path.replace(/\\/g, '/') : null;
 
+  if (req.fileValidationError) {
+    res.status(HttpCodes.UnprocessableEntity).send({
+      message: req.fileValidationError,
+      result: null,
+    });
+  }
+
+  const profilePicture = req.file.location;
   try {
     await User.findByIdAndUpdate(
       { _id: ObjectId(id) },
@@ -167,7 +173,7 @@ const setProfile = async (req, res) => {
           profilePicture,
         },
       },
-      { lean: true },
+      { new: true },
       (err, resp) => {
         if (resp) {
           res.status(HttpCodes.OK).send({
