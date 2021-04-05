@@ -35,6 +35,4 @@ router.post(
   userController.setProfile
 );
 
-router.post('/image-upload', userController.imageUpload);
-
 module.exports = router;
