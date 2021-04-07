@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
-const transactionSchema = new mongoose.Schema(
+const { Schema } = mongoose;
+
+const transactionSchema = new Schema(
   {
-    userId: { type: String },
-    groupId: { type: String },
-    userName: { type: String },
-    groupName: { type: String },
+    userId: { type: Schema.Types.ObjectId, ref: 'User' },
+    groupId: { type: Schema.Types.ObjectId, ref: 'Group' },
     description: { type: String },
     type: { type: String },
   },

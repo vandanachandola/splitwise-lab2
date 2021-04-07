@@ -1,16 +1,18 @@
 const mongoose = require('mongoose');
+const expenseDetailSchema = require('./expense-details');
 
-const expenseSchema = new mongoose.Schema(
+const { Schema } = mongoose;
+
+const expenseSchema = new Schema(
   {
-    userId: { type: String },
-    groupId: { type: String },
+    userId: { type: Schema.Types.ObjectId, ref: 'User' },
     description: { type: String },
     totalExpense: { type: Number },
-    createdBy: { type: String },
-    members: [{ type: String }],
-    pendingInvites: [{ type: String }],
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    members: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    expenseDetails: [expenseDetailSchema],
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Expense', expenseSchema);
+module.exports = expenseSchema;
