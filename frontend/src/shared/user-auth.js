@@ -1,37 +1,54 @@
 const UserAuth = (() => {
   const windowGlobal = typeof window !== 'undefined' && window;
 
-  const getUserData = () =>
+  const getUserCredentials = () =>
     JSON.parse(windowGlobal.localStorage.getItem('curr_user_cred'));
 
-  const setUserData = (userCredentials) => {
+  const getUserProfile = () =>
+    JSON.parse(windowGlobal.localStorage.getItem('curr_user_prof'));
+
+  const setUserCredentials = (userCredentials) => {
     const credentials = JSON.stringify({
       id: userCredentials.id,
-      name: userCredentials.name,
-      profilePicture: userCredentials.profilePicture,
+      emailId: userCredentials.emailId,
       token: userCredentials.token,
     });
     windowGlobal.localStorage.setItem('curr_user_cred', credentials);
   };
 
+  const setUserProfile = (userProfile) => {
+    const profile = JSON.stringify({
+      id: userProfile.id,
+      name: userProfile.name,
+      emailId: userProfile.emailId,
+      profilePicture: userProfile.profilePicture,
+    });
+    windowGlobal.localStorage.setItem('curr_user_prof', profile);
+  };
+
   const logout = () => {
     windowGlobal.localStorage.removeItem('curr_user_cred');
   };
-  const getUserId = () => (getUserData() ? getUserData().id : '');
+  const getUserId = () => (getUserCredentials() ? getUserCredentials().id : '');
 
-  const getName = () => (getUserData() ? getUserData().name : '');
+  const getName = () => (getUserProfile() ? getUserProfile().name : '');
 
-  const getUserToken = () => (getUserData() ? getUserData().token : '');
+  const getEmail = () => (getUserProfile() ? getUserProfile().emailId : '');
+
+  const getUserToken = () =>
+    getUserCredentials() ? getUserCredentials().token : '';
 
   const getProfilePicture = () =>
-    getUserData() ? getUserData().profilePicture : '';
+    getUserProfile() ? getUserProfile().profilePicture : '';
 
   return {
     getUserId,
     getName,
+    getEmail,
     getUserToken,
     getProfilePicture,
-    setUserData,
+    setUserCredentials,
+    setUserProfile,
     logout,
   };
 })();

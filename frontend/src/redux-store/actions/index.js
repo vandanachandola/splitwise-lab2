@@ -16,9 +16,15 @@ export function setAlertMessage(payload) {
 
 // action to set up current user
 export function setCurrentUser(payload) {
-  UserAuth.setUserData({
+  UserAuth.setUserCredentials({
     id: payload.id,
+    emailId: payload.emailId,
     token: payload.token,
+  });
+  UserAuth.setUserProfile({
+    name: payload.name,
+    emailId: payload.emailId,
+    profilePicture: '',
   });
   return {
     type: SET_CURR_USER,
@@ -28,6 +34,11 @@ export function setCurrentUser(payload) {
 
 // action to set user profile data
 export function setUserProfile(payload) {
+  UserAuth.setUserProfile({
+    name: payload.name,
+    emailId: payload.emailId,
+    profilePicture: payload.profilePicture,
+  });
   return {
     type: SET_USER_PROFILE,
     payload,

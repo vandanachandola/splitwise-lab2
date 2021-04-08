@@ -12,7 +12,6 @@ import { logoutCurrentUser } from '../redux-store/actions/index';
 const Navigation = (props) => {
   const history = useHistory();
   const { userName, profilePicture } = props;
-
   return (
     <Navbar
       collapseOnSelect
@@ -123,8 +122,8 @@ const Navigation = (props) => {
 
 function mapStateToProps(state) {
   return {
-    userName: state.currentUser ? state.currentUser.name : null,
-    profilePicture: state.currentUser ? state.currentUser.profilePicture : null,
+    userName: state.userProfile ? state.userProfile.name : null,
+    profilePicture: state.userProfile ? state.userProfile.profilePicture : null,
   };
 }
 

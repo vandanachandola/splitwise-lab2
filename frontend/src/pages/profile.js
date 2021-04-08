@@ -31,7 +31,6 @@ class Profile extends Component {
   }
 
   componentDidMount() {
-    console.log(UserAuth.getUserId());
     axios
       .get(`${config.server.url}/api/users/profile`, {
         params: {
@@ -67,7 +66,6 @@ class Profile extends Component {
 
   onSaveClick(e) {
     e.preventDefault();
-    console.log(this.state);
     const {
       profilePicture,
       name,
@@ -139,16 +137,20 @@ class Profile extends Component {
       <div>
         <Navigation />
 
-        {this.props.alert && this.props.alert.type === AlertType.Error && (
-          <Alert variant="danger" style={{ margin: '1rem' }}>
-            {this.props.alert.message}
-          </Alert>
-        )}
-        {this.props.alert && this.props.alert.type === AlertType.Success && (
-          <Alert variant="success" style={{ margin: '1rem' }}>
-            {this.props.alert.message}
-          </Alert>
-        )}
+        {this.props.alert &&
+          this.props.alert.message.length > 0 &&
+          this.props.alert.type === AlertType.Error && (
+            <Alert variant="danger" style={{ margin: '1rem' }}>
+              {this.props.alert.message}
+            </Alert>
+          )}
+        {this.props.alert &&
+          this.props.alert.message.length > 0 &&
+          this.props.alert.type === AlertType.Success && (
+            <Alert variant="success" style={{ margin: '1rem' }}>
+              {this.props.alert.message}
+            </Alert>
+          )}
 
         <div className="container" style={{ marginTop: '5rem' }}>
           <h2>Your account</h2>
