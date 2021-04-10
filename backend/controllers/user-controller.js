@@ -197,7 +197,34 @@ const setProfile = async (req, res) => {
   }
 };
 
+// search user by name or email
+const searchUser = async (req, res) => {
+  const { searchTerm, userId } = req.query;
+  User.find(
+    {
+      $or: [
+        { name: { $regex: `.*${searchTerm}.*` } },
+        { emailId: { $regex: `.*${searchTerm}.*` } },
+      ],
+      _id: { $ne: userId },
+    },
+    (err, users) => {
+      if (err) {
+        res.status(HttpCodes.BadRequest).send({
+          message: 'Could not find user, some error occured.',
+          result: err,
+        });
+      }
+      res.status(HttpCodes.OK).send({
+        message: 'Here are the users matching your search.',
+        result: users,
+      });
+    }
+  );
+};
+
 exports.login = login;
 exports.signup = signup;
 exports.getProfile = getProfile;
 exports.setProfile = setProfile;
+exports.searchUser = searchUser;

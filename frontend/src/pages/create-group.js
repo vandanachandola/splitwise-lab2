@@ -44,7 +44,7 @@ class CreateGroup extends Component {
 
   async onSearch(val) {
     const res = await search(`${config.server.url}/api/users/search-user`, {
-      val,
+      searchTerm: val,
       userId: UserAuth.getUserId(),
     });
 
