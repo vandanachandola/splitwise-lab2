@@ -106,7 +106,7 @@ const Navigation = (props) => {
                 <NavDropdown.Item
                   onClick={() => {
                     props.logoutCurrentUser();
-                    history.push('/login');
+                    history.push('/landing-page');
                   }}
                 >
                   Logout

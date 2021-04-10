@@ -30,11 +30,14 @@ const createGroup = async (req, res) => {
     });
   } else {
     const groupPicture = req.file.location;
-    const invites = {
-      invitee: ObjectId(pendingInvites.invitee),
-      invitedBy: ObjectId(pendingInvites.invitedBy),
-      status: pendingInvites.status,
-    };
+    const invites = [];
+    JSON.parse(pendingInvites).forEach((element) => {
+      invites.push({
+        invitee: ObjectId(element.invitee),
+        invitedBy: ObjectId(element.invitedBy),
+        status: element.status,
+      });
+    });
 
     try {
       const newGroup = new Group({

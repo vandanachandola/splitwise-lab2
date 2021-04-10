@@ -28,6 +28,7 @@ const UserAuth = (() => {
 
   const logout = () => {
     windowGlobal.localStorage.removeItem('curr_user_cred');
+    windowGlobal.localStorage.removeItem('curr_user_prof');
   };
   const getUserId = () => (getUserCredentials() ? getUserCredentials().id : '');
 
