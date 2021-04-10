@@ -14,32 +14,48 @@ const createGroup = async (req, res) => {
     });
   }
 
-  const groupPicture = req.file.location;
-  const invites = {
-    invitee: ObjectId(pendingInvites.invitee),
-    invitedBy: ObjectId(pendingInvites.invitedBy),
-    status: pendingInvites.status,
-  };
-
+  let existingGroup;
   try {
-    const newGroup = new Group({
-      name,
-      groupPicture,
-      createdBy: ObjectId(createdBy),
-      pendingInvites: invites,
-      members: null,
-    });
-    const groupDetails = await newGroup.save();
-
-    res.status(HttpCodes.OK).send({
-      message: 'Your group has been successfully created.',
-      result: groupDetails,
-    });
+    existingGroup = await Group.findOne({ name });
   } catch (err) {
     res.status(HttpCodes.InternalServerError).send({
-      message: 'Unable to create new group, some error occured.',
+      message: 'Group creation failed, please try again.',
       result: err,
     });
+  }
+  if (existingGroup) {
+    res.status(HttpCodes.BadRequest).send({
+      message: 'Group exists already, enter another name.',
+      result: existingGroup,
+    });
+  } else {
+    const groupPicture = req.file.location;
+    const invites = {
+      invitee: ObjectId(pendingInvites.invitee),
+      invitedBy: ObjectId(pendingInvites.invitedBy),
+      status: pendingInvites.status,
+    };
+
+    try {
+      const newGroup = new Group({
+        name,
+        groupPicture,
+        createdBy: ObjectId(createdBy),
+        pendingInvites: invites,
+        members: null,
+      });
+      const groupDetails = await newGroup.save();
+
+      res.status(HttpCodes.OK).send({
+        message: 'Your group has been successfully created.',
+        result: groupDetails,
+      });
+    } catch (err) {
+      res.status(HttpCodes.InternalServerError).send({
+        message: 'Unable to create new group, some error occured.',
+        result: err,
+      });
+    }
   }
 };
 

@@ -4,6 +4,7 @@ import axios from 'axios';
 import FormData from 'form-data';
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
+import { connect } from 'react-redux';
 
 import Navigation from '../components/navigation';
 import UserAuth from '../shared/user-auth';
@@ -13,6 +14,8 @@ import defaultGroupLogo from '../images/default-group-logo.svg';
 import FormErrors from '../shared/form-errors';
 import search from '../shared/search';
 import InviteStatus from '../enums/invite-status';
+import AlertType from '../enums/alert-type';
+import { setAlertMessage } from '../redux-store/actions/index';
 
 class CreateGroup extends Component {
   constructor() {
@@ -22,8 +25,6 @@ class CreateGroup extends Component {
       Name: '',
       Members: [],
       Invitees: [],
-      successMsg: '',
-      errorMsg: '',
       registeredUsers: [],
       searchedUsers: [],
       value: '',
@@ -40,6 +41,7 @@ class CreateGroup extends Component {
     this.onUserSelectionChange = this.onUserSelectionChange.bind(this);
     this.onAddPersonClick = this.onAddPersonClick.bind(this);
     this.onCancelClick = this.onCancelClick.bind(this);
+    this.onSaveClick = this.onSaveClick.bind(this);
   }
 
   async onSearch(val) {
@@ -93,24 +95,80 @@ class CreateGroup extends Component {
     }
   }
 
+  onSaveClick(e) {
+    e.preventDefault();
+    console.log(this.state);
+    const { GroupPicture, Name, Invitees } = this.state;
+
+    const formData = new FormData();
+    formData.append('groupPicture', GroupPicture);
+    formData.append('name', Name.valueOf());
+    formData.append('createdBy', UserAuth.getUserId());
+    formData.append('pendingInvites', JSON.stringify(Invitees));
+
+    axios
+      .post(`${config.server.url}/api/groups/new`, formData)
+      .then((response) => {
+        if (response.status === 200) {
+          const alert = {
+            type: AlertType.Success,
+            message: response.data.message,
+          };
+          this.props.setAlertMessage(alert);
+          return {
+            groupId: response.data.result.id,
+            groupName: response.data.result.name,
+          };
+        }
+        return null;
+      })
+      // .then((group) => {
+      //   if (group) {
+      //     recordTransaction(group.groupId, group.groupName);
+      //   }
+      // })
+      .catch((err) => {
+        if (err.response.status === 500 || err.response.status === 400) {
+          const alert = {
+            type: AlertType.Error,
+            message: err.response.data.message,
+          };
+          this.props.setAlertMessage(alert);
+        }
+      });
+  }
+
+  recordTransaction(groupId, groupName) {
+    const data = {
+      userId: UserAuth.getUserId(),
+      groupId,
+      userName: UserAuth.getName(),
+      groupName,
+      description: ` created the group "${groupName}"`,
+    };
+    axios.post(`${config.server.url}/api/groups/transaction`, data);
+  }
+
+  validateForm() {
+    const { isNameValid } = this.state;
+    this.setState({ isFormValid: isNameValid });
+  }
+
   validateField(fieldName, value) {
     const { formErrors } = this.state;
     let { isNameValid } = this.state;
 
     switch (fieldName) {
       case 'Name':
-        isNameValid = value.match(/^[a-z ,.'-]+$/i);
-        formErrors.Name = isNameValid ? '' : ' field is invalid';
+        isNameValid = value.match(/^[a-zA-Z0-9_]*$/i);
+        formErrors.Name = isNameValid
+          ? ''
+          : 'Enter a valid group name containing only alphanumeric values and/or underscore.';
         break;
       default:
         break;
     }
     this.setState({ formErrors, isNameValid }, this.validateForm);
-  }
-
-  validateForm() {
-    const { isNameValid } = this.state;
-    this.setState({ isFormValid: isNameValid });
   }
 
   nameChangeHandler(e) {
@@ -132,58 +190,6 @@ class CreateGroup extends Component {
     const formInfo = this.state;
     const refArray = formInfo.Members.map(() => createRef());
 
-    const recordTransaction = (groupId, groupName) => {
-      const data = {
-        userId: UserAuth.getUserId(),
-        groupId,
-        userName: UserAuth.getName(),
-        groupName,
-        description: ` created the group "${groupName}"`,
-      };
-      axios.post(`${config.server.url}/api/groups/transaction`, data);
-    };
-
-    const onSaveClick = (e) => {
-      e.preventDefault();
-      console.log(this.state);
-      const { GroupPicture, Name, Invitees } = this.state;
-
-      const formData = new FormData();
-      formData.append('groupPicture', GroupPicture);
-      formData.append('name', Name.valueOf());
-      formData.append('createdBy', UserAuth.getUserId());
-      formData.append('pendingInvites', JSON.stringify(Invitees));
-
-      axios
-        .post(`${config.server.url}/api/groups/new`, formData)
-        .then((response) => {
-          if (response.status === 200) {
-            this.setState({
-              successMsg: response.data.message,
-              errorMsg: '',
-            });
-            return {
-              groupId: response.data.result.id,
-              groupName: response.data.result.name,
-            };
-          }
-          return null;
-        })
-        // .then((group) => {
-        //   if (group) {
-        //     recordTransaction(group.groupId, group.groupName);
-        //   }
-        // })
-        .catch((err) => {
-          if (err.response.status === 500) {
-            this.setState({
-              successMsg: '',
-              errorMsg: err.response.data.message,
-            });
-          }
-        });
-    };
-
     return (
       <div>
         <Navigation />
@@ -192,19 +198,19 @@ class CreateGroup extends Component {
           <FormErrors formErrors={formInfo.formErrors} />
         </div>
 
-        {formInfo.errorMsg && formInfo.errorMsg.length > 0 && (
+        {this.props.alert && this.props.alert.type === 'error' && (
           <Alert variant="danger" style={{ margin: '1rem' }}>
-            {formInfo.errorMsg}
+            {this.props.alert.message}
           </Alert>
         )}
-        {formInfo.successMsg && formInfo.successMsg.length > 0 && (
+        {this.props.alert && this.props.alert.type === 'success' && (
           <Alert variant="success" style={{ margin: '1rem' }}>
-            {formInfo.successMsg}
+            {this.props.alert.message}
           </Alert>
         )}
 
         <div className="container" style={{ marginTop: '5rem' }}>
-          <Form onSubmit={onSaveClick}>
+          <Form onSubmit={this.onSaveClick}>
             <Container>
               <Row>
                 <Col>
@@ -225,6 +231,10 @@ class CreateGroup extends Component {
                       value={formInfo.Name}
                       name="Name"
                       onChange={this.nameChangeHandler}
+                    />
+                    <FormErrors
+                      formErrors={formInfo.formErrors}
+                      currentField="Name"
                     />
                   </Form.Group>
                   <hr />
@@ -296,4 +306,16 @@ class CreateGroup extends Component {
   }
 }
 
-export default CreateGroup;
+function mapStateToProps(state) {
+  return {
+    alert: state.alert,
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    setAlertMessage: (alert) => dispatch(setAlertMessage(alert)),
+  };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(CreateGroup);
