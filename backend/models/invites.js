@@ -6,7 +6,7 @@ const inviteSchema = new Schema(
   {
     invitedBy: { type: Schema.Types.ObjectId, ref: 'User' },
     invitee: { type: Schema.Types.ObjectId, ref: 'User' },
-    status: { type: String },
+    status: { type: Number },
   },
   { timestamps: true }
 );
