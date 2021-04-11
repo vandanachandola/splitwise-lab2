@@ -29,7 +29,11 @@ app.use('/api/users', userRoute);
 app.use('/api/groups', groupRoute);
 
 mongoose
-  .connect(config.db.conn, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(config.db.conn, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+  })
   .then(() => {
     app.listen(config.server.port);
     console.log('Listening on port', config.server.port);

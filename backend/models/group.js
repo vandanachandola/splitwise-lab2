@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const inviteSchema = require('./invites');
 
 const { Schema } = mongoose;
 
@@ -9,7 +8,7 @@ const groupSchema = new Schema(
     groupPicture: { type: String },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
     members: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    pendingInvites: [inviteSchema],
+    pendingInvites: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   },
   { timestamps: true }
 );

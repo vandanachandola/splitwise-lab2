@@ -13,7 +13,6 @@ import ImageUpload from '../shared/image-upload';
 import defaultGroupLogo from '../images/default-group-logo.svg';
 import FormErrors from '../shared/form-errors';
 import search from '../shared/search';
-import InviteStatus from '../enums/invite-status';
 import AlertType from '../enums/alert-type';
 import { setAlertMessage } from '../redux-store/actions/index';
 
@@ -84,13 +83,8 @@ class CreateGroup extends Component {
   onUserSelectionChange(e, value) {
     if (value) {
       const selectedId = value._id;
-      const newUser = {
-        invitedBy: UserAuth.getUserId(),
-        invitee: selectedId,
-        status: InviteStatus.Pending,
-      };
       this.setState((prevState) => ({
-        Invitees: [...prevState.Invitees, newUser],
+        Invitees: [...prevState.Invitees, selectedId],
       }));
     }
   }

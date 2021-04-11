@@ -13,4 +13,13 @@ router.post(
   groupController.createGroup
 );
 
+// get my groups
+router.get('/my-groups', groupController.getMyGroups);
+
+// update group invite status
+router.post('/my-groups', groupController.updateInviteStatus);
+
+// leave a group
+router.post('/leave-group', groupController.leaveGroup);
+
 module.exports = router;
