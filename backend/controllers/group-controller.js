@@ -3,10 +3,11 @@ const { ObjectId } = require('mongodb');
 const HttpCodes = require('../enums/http-codes');
 const InviteStatus = require('../enums/invite-status');
 const Group = require('../models/group');
+const Expense = require('../models/expenses');
 
 // create new group
 const createGroup = async (req, res) => {
-  const { name, createdBy, pendingInvites } = req.body;
+  const { name, createdBy, pendingInvites, creatorName } = req.body;
 
   if (req.fileValidationError) {
     res.status(HttpCodes.UnprocessableEntity).send({
@@ -37,7 +38,8 @@ const createGroup = async (req, res) => {
         groupPicture,
         createdBy: ObjectId(createdBy),
         pendingInvites: JSON.parse(pendingInvites),
-        members: [],
+        members: [ObjectId(createdBy)],
+        creatorName,
       });
       const groupDetails = await newGroup.save();
 
@@ -112,12 +114,26 @@ const updateInviteStatus = async (req, res) => {
   }
 };
 
+// check a user's dues in group
+const checkDues = async (req, res) => {
+  const { groupId, userId } = req.body;
+};
+
 // leave a group
 const leaveGroup = async (req, res) => {
   const { groupId, userId } = req.body;
   try {
-    await Group.findByIdAndUpdate(ObjectId(groupId), {
-      $pull: { members: ObjectId(userId) },
+    const leftGroup = await Group.findByIdAndUpdate(
+      ObjectId(groupId),
+      {
+        $pull: { members: ObjectId(userId) },
+      },
+      { new: true }
+    );
+
+    res.status(HttpCodes.OK).send({
+      message: `You have successfully left group ${leftGroup.name}.`,
+      result: leftGroup,
     });
   } catch (err) {
     res.status(HttpCodes.InternalServerError).send({
@@ -127,7 +143,85 @@ const leaveGroup = async (req, res) => {
   }
 };
 
+// add new expense in group
+const addNewExpense = async (req, res) => {
+  const { groupId, description, totalExpense, lenderId, lenderName } = req.body;
+
+  try {
+    const currentGroup = await Group.findById(ObjectId(groupId));
+
+    const allMembersWithOwner = currentGroup.members;
+    const allMembers = allMembersWithOwner.filter(
+      (member) => member.toString() !== lenderId
+    );
+    console.log(allMembers.length);
+
+    const individualExpense =
+      allMembers.length > 0 ? totalExpense / (allMembers.length + 1) : 0;
+
+    if (individualExpense > 0) {
+      const expenseDetails = [];
+      allMembers.forEach((memberId) => {
+        expenseDetails.push({
+          groupId: ObjectId(groupId),
+          borrowerId: ObjectId(memberId),
+          lenderId: ObjectId(lenderId),
+          lenderName,
+          expense: individualExpense,
+          isSettled: false,
+        });
+      });
+
+      const newExpense = new Expense({
+        groupId: ObjectId(groupId),
+        description,
+        totalExpense,
+        lenderId: ObjectId(lenderId),
+        lenderName,
+        expenseDetails,
+      });
+      const expense = await newExpense.save();
+
+      res.status(HttpCodes.OK).send({
+        message: `You have successfully added expense.`,
+        result: expense,
+      });
+    } else {
+      res.status(HttpCodes.InternalServerError).send({
+        message: `No members in group currently.`,
+        result: null,
+      });
+    }
+  } catch (err) {
+    res.status(HttpCodes.InternalServerError).send({
+      message: 'Unable to add expense, some error occured.',
+      result: err,
+    });
+  }
+};
+
+// get expenses by group id
+const getExpenses = async (req, res) => {
+  const { groupId } = req.query;
+  try {
+    const expense = await Expense.find({ groupId: ObjectId(groupId) });
+
+    res.status(HttpCodes.OK).send({
+      message: `You have successfully added expense.`,
+      result: expense,
+    });
+  } catch (err) {
+    res.status(HttpCodes.InternalServerError).send({
+      message: 'Unable to add expense, some error occured.',
+      result: err,
+    });
+  }
+};
+
 exports.createGroup = createGroup;
 exports.getMyGroups = getMyGroups;
 exports.updateInviteStatus = updateInviteStatus;
+exports.checkDues = checkDues;
 exports.leaveGroup = leaveGroup;
+exports.addNewExpense = addNewExpense;
+exports.getExpenses = getExpenses;

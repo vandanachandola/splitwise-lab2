@@ -1,18 +1,27 @@
 const mongoose = require('mongoose');
-const expenseDetailSchema = require('./expense-details');
 
 const { Schema } = mongoose;
 
 const expenseSchema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'User' },
+    groupId: { type: Schema.Types.ObjectId, ref: 'Group' },
     description: { type: String },
     totalExpense: { type: Number },
-    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    members: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    expenseDetails: [expenseDetailSchema],
+    lenderId: { type: Schema.Types.ObjectId, ref: 'User' },
+    lenderName: { type: String },
+    expenseDetails: [
+      {
+        groupId: { type: Schema.Types.ObjectId, ref: 'Group' },
+        expenseId: { type: Schema.Types.ObjectId },
+        borrowerId: { type: Schema.Types.ObjectId, ref: 'User' },
+        lenderId: { type: Schema.Types.ObjectId, ref: 'User' },
+        lenderName: { type: String },
+        expense: { type: Number },
+        isSettled: { type: Boolean },
+      },
+    ],
   },
   { timestamps: true }
 );
 
-module.exports = expenseSchema;
+module.exports = mongoose.model('Expense', expenseSchema);

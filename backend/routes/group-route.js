@@ -19,7 +19,16 @@ router.get('/my-groups', groupController.getMyGroups);
 // update group invite status
 router.post('/my-groups', groupController.updateInviteStatus);
 
+// check a user's dues in group
+router.get('/check-dues', groupController.checkDues);
+
 // leave a group
 router.post('/leave-group', groupController.leaveGroup);
+
+// add new expense to group
+router.post('/new-expense', groupController.addNewExpense);
+
+// get expenses by group id
+router.get('/expenses', groupController.getExpenses);
 
 module.exports = router;
