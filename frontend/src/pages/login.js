@@ -54,7 +54,7 @@ class Login extends Component {
         }
       })
       .catch((err) => {
-        if (err.response.status === 401 || err.response.status === 404) {
+        if (err.response) {
           const alert = {
             type: AlertType.Error,
             message: err.response.data.message.message,

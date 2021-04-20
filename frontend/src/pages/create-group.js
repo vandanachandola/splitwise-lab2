@@ -99,6 +99,7 @@ class CreateGroup extends Component {
     formData.append('name', Name.valueOf());
     formData.append('createdBy', UserAuth.getUserId());
     formData.append('pendingInvites', JSON.stringify(Invitees));
+    formData.append('creatorName', UserAuth.getName());
 
     axios
       .post(`${config.server.url}/api/groups/new`, formData)

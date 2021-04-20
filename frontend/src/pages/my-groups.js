@@ -1,6 +1,14 @@
 import axios from 'axios';
 import React, { Component } from 'react';
-import { Alert, Button, Card, Modal } from 'react-bootstrap';
+import {
+  Alert,
+  Button,
+  Card,
+  Col,
+  Container,
+  Modal,
+  Row,
+} from 'react-bootstrap';
 import { withStyles } from '@material-ui/styles';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
@@ -11,6 +19,7 @@ import UserAuth from '../shared/user-auth';
 import config from '../shared/config';
 import InviteStatus from '../enums/invite-status';
 import { setAlertMessage } from '../redux-store/actions/index';
+import AlertType from '../enums/alert-type';
 
 const styles = () => ({
   root: {
@@ -28,6 +37,12 @@ const styles = () => ({
   },
   status: {
     color: '#999',
+  },
+  groupPicture: {
+    width: '15%',
+    height: 'auto',
+    float: 'left',
+    marginRight: '1rem',
   },
 });
 
@@ -62,8 +77,8 @@ class MyGroups extends Component {
     });
   }
 
-  onLinkClick(e, status) {
-    if (status !== InviteStatus.Accepted) {
+  onLinkClick(e, isAccepted) {
+    if (!isAccepted) {
       e.preventDefault();
     }
   }
@@ -74,9 +89,9 @@ class MyGroups extends Component {
     }
 
     const data = {
-      userId: UserAuth.getUserId(),
+      inviteeId: UserAuth.getUserId(),
       groupId,
-      status,
+      updateType: status,
     };
 
     axios
@@ -95,7 +110,7 @@ class MyGroups extends Component {
         this.getMyGroups();
       })
       .catch((err) => {
-        if (err.response.status === 500) {
+        if (err.response) {
           const alert = {
             type: AlertType.Error,
             message: err.response.data.message,
@@ -132,7 +147,7 @@ class MyGroups extends Component {
         }
       })
       .catch((err) => {
-        if (err.response.status === 500) {
+        if (err.response) {
           const alert = {
             type: AlertType.Error,
             message: err.response.data.message,
@@ -155,7 +170,7 @@ class MyGroups extends Component {
         }
       })
       .catch((err) => {
-        if (err.response.status === 400 || err.response === 500) {
+        if (err.response) {
           const alert = {
             type: AlertType.Error,
             message: err.response.data.message,
@@ -168,6 +183,7 @@ class MyGroups extends Component {
   render() {
     const { groups, showModal } = this.state;
     const { classes } = this.props;
+    const userId = UserAuth.getUserId();
 
     return (
       <div>
@@ -188,66 +204,75 @@ class MyGroups extends Component {
           {groups.length === 0 && <em>No groups to show</em>}
           {groups.map((input) => (
             <Link
-              to={`/group/${input.groupId}`}
+              to={{ pathname: `/group/${input._id}`, state: { group: input } }}
               className={classes.redirect}
-              onClick={(e) => this.onLinkClick(e, input.status)}
+              onClick={(e) =>
+                this.onLinkClick(
+                  e,
+                  input.members && input.members.includes(userId)
+                )
+              }
             >
               <Card style={{ marginTop: '0.5rem' }}>
                 <Card.Body>
+                  <img
+                    className={classes.groupPicture}
+                    alt={input.name}
+                    src={input.groupPicture}
+                  />
+
                   <Card.Title className={classes.title}>
                     {input.name}
                   </Card.Title>
                   <Card.Text className={classes.status}>
-                    {input.status === 0 && (
-                      <em>Your current status: PENDING</em>
-                    )}
-                    {input.status === 1 && (
+                    {input.pendingInvites &&
+                      input.pendingInvites.includes(userId) && (
+                        <em>Your current status: PENDING</em>
+                      )}
+                    {input.members && input.members.includes(userId) && (
                       <em>Your current status: ACCEPTED</em>
                     )}
-                    {input.status === 2 && (
-                      <em>Your current status: REJECTED</em>
-                    )}
-                    {input.status === 3 && <em>Your current status: LEFT</em>}
                   </Card.Text>
 
-                  {input.status === 0 && (
-                    <div style={{ float: 'right' }}>
-                      <Button
-                        size="sm"
-                        variant="success"
-                        style={{ marginRight: '1rem' }}
-                        onClick={(e) =>
-                          this.onGroupAction(
-                            e,
-                            input.groupId,
-                            InviteStatus.Accepted
-                          )
-                        }
-                      >
-                        Accept
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={(e) =>
-                          this.onGroupAction(
-                            e,
-                            input.groupId,
-                            InviteStatus.Rejected
-                          )
-                        }
-                      >
-                        Reject
-                      </Button>
-                    </div>
-                  )}
-                  {input.status !== 0 && (
+                  {input.pendingInvites &&
+                    input.pendingInvites.includes(userId) && (
+                      <div style={{ float: 'right' }}>
+                        <Button
+                          size="sm"
+                          variant="success"
+                          style={{ marginRight: '1rem' }}
+                          onClick={(e) =>
+                            this.onGroupAction(
+                              e,
+                              input._id,
+                              InviteStatus.Accepted
+                            )
+                          }
+                        >
+                          Accept
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={(e) =>
+                            this.onGroupAction(
+                              e,
+                              input._id,
+                              InviteStatus.Rejected
+                            )
+                          }
+                        >
+                          Reject
+                        </Button>
+                      </div>
+                    )}
+                  {input.members && input.members.includes(userId) && (
                     <div style={{ float: 'right' }}>
                       <Button
                         size="sm"
                         variant="danger"
                         onClick={(e) =>
-                          this.onLeaveGroup(e, input.groupId, InviteStatus.Left)
+                          this.onLeaveGroup(e, input._id, InviteStatus.Left)
                         }
                       >
                         Leave group
