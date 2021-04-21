@@ -7,6 +7,7 @@ const HttpResponse = require('../models/http-response');
 const User = require('../models/user');
 const config = require('../config');
 const upload = require('../middleware/image-upload');
+const kafka = require('../kafka/client');
 
 // login existing user
 const login = async (req, res) => {
@@ -223,8 +224,30 @@ const searchUser = async (req, res) => {
   );
 };
 
+const book = async (req, res) => {
+  kafka.make_request('user_group', req.body, (err, results) => {
+    console.log('in result');
+    console.log(results);
+    if (err) {
+      console.log('Inside err');
+      res.json({
+        status: 'error',
+        msg: 'System Error, Try Again.',
+      });
+    } else {
+      console.log('Inside else');
+      res.json({
+        updatedList: results,
+      });
+
+      res.end();
+    }
+  });
+};
+
 exports.login = login;
 exports.signup = signup;
 exports.getProfile = getProfile;
 exports.setProfile = setProfile;
 exports.searchUser = searchUser;
+exports.book = book;
