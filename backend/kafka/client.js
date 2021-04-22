@@ -1,16 +1,10 @@
-/* eslint-disable no-var */
-/* eslint-disable global-require */
-/* eslint-disable prefer-arrow-callback */
-/* eslint-disable camelcase */
-/* eslint-disable spaced-comment */
-/* eslint-disable import/no-unresolved */
-var rpc = new (require('./kafkarpc'))();
+const Kafkarpc = require('./kafkarpc');
 
-//make request to kafka
-function make_request(queue_name, msg_payload, callback) {
-  console.log('in make request');
-  console.log(msg_payload);
-  rpc.makeRequest(queue_name, msg_payload, function (err, response) {
+const rpc = new Kafkarpc();
+
+// make request to kafka
+function makeRequest(queueName, msgPayload, functionName, callback) {
+  rpc.makeRequest(queueName, msgPayload, functionName, (err, response) => {
     if (err) console.error(err);
     else {
       console.log('response', response);
@@ -19,4 +13,4 @@ function make_request(queue_name, msg_payload, callback) {
   });
 }
 
-exports.make_request = make_request;
+exports.make_request = makeRequest;

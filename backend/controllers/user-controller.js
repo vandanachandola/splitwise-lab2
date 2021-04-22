@@ -11,55 +11,13 @@ const kafka = require('../kafka/client');
 
 // login existing user
 const login = async (req, res) => {
-  const { emailId, password } = req.body;
-  try {
-    const user = await User.findOne({ emailId });
-    if (user) {
-      const validPass = await bcrypt.compare(password, user.password);
-      if (validPass) {
-        const payload = {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-        };
-
-        jwt.sign(
-          payload,
-          config.auth.secretOrKey,
-          { expiresIn: 31556926 },
-          (err, token) => {
-            console.log('token', token);
-            res.status(HttpCodes.OK).send({
-              message: 'You have successfully logged in.',
-              result: user,
-              token: `${token}`,
-            });
-          }
-        );
-      } else {
-        res.status(HttpCodes.UnauthorizedClient).send(
-          new HttpResponse({
-            message: 'Invalid credentials! Please try again.',
-            result: null,
-          })
-        );
-      }
+  kafka.make_request('api_req', req.body, 'login', (err, result) => {
+    if (err) {
+      res.status(HttpCodes.InternalServerError).send(result);
     } else {
-      res.status(HttpCodes.UnauthorizedClient).send(
-        new HttpResponse({
-          message: 'User not found.',
-          result: null,
-        })
-      );
+      res.status(HttpCodes.OK).send(result);
     }
-  } catch (err) {
-    res.status(HttpCodes.UnauthorizedClient).send(
-      new HttpResponse({
-        message: 'Some error occurred.',
-        result: err,
-      })
-    );
-  }
+  });
 };
 
 // signup new user
@@ -224,30 +182,8 @@ const searchUser = async (req, res) => {
   );
 };
 
-const book = async (req, res) => {
-  kafka.make_request('user_group', req.body, (err, results) => {
-    console.log('in result');
-    console.log(results);
-    if (err) {
-      console.log('Inside err');
-      res.json({
-        status: 'error',
-        msg: 'System Error, Try Again.',
-      });
-    } else {
-      console.log('Inside else');
-      res.json({
-        updatedList: results,
-      });
-
-      res.end();
-    }
-  });
-};
-
 exports.login = login;
 exports.signup = signup;
 exports.getProfile = getProfile;
 exports.setProfile = setProfile;
 exports.searchUser = searchUser;
-exports.book = book;

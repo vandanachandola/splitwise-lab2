@@ -18,4 +18,10 @@ config.awss3.AWS_S3_BUCKET_NAME = 'splitwise-lab2-bucket';
 config.awss3.AWS_LOCATION = 'us-east-2';
 config.awss3.AWS_ACL_ACCESS_CONTROL = 'public-read';
 
+config.kafka = {};
+config.kafka.port = 5001;
+config.kafka.host = 'localhost';
+config.kafka.serverport = 2181;
+config.kafka.url = `${config.kafka.host}:${config.kafka.serverport}`;
+
 module.exports = config;
