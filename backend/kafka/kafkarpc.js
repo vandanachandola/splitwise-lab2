@@ -57,8 +57,8 @@ KafkaRPC.prototype.makeRequest = function (
           correlationId,
           replyTo: 'api_resp',
           data: content,
+          fn: fnName,
         }),
-        fn: fnName,
         partition: 0,
       },
     ];

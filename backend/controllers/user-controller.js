@@ -11,7 +11,7 @@ const kafka = require('../kafka/client');
 
 // login existing user
 const login = async (req, res) => {
-  kafka.make_request('api_req', req.body, 'login', (err, result) => {
+  kafka.make_request('api_req', req.body, 'login-service', (err, result) => {
     if (err) {
       res.status(HttpCodes.InternalServerError).send(result);
     } else {

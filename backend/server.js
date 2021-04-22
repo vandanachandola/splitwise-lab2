@@ -1,3 +1,5 @@
+/* eslint-disable global-require */
+/* eslint-disable import/no-dynamic-require */
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -5,7 +7,6 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 
 const config = require('./config');
-const Signin = require('./services/login-service.js');
 
 const app = express();
 
@@ -32,11 +33,11 @@ function handleTopicRequest(topicName) {
 
   console.log('kafka server is running...');
   consumer.on('message', (message) => {
-    const fname = Signin;
-    console.log(`message received for topic : ${topicName} `, fname);
     const data = JSON.parse(message.value);
+    const fname = require(`./services/${data.fn}`);
+    console.log(`message received for topic : ${topicName} `, fname);
 
-    fname.handle_request(data.data, (_err, res) => {
+    fname.handleRequest(data.data, (_err, res) => {
       console.log(`after handle ${res}`);
       const payloads = [
         {

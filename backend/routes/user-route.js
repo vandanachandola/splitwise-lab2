@@ -38,6 +38,4 @@ router.post(
 // search user whose emailId or name matches the search term
 router.get('/search-user', userController.searchUser);
 
-router.post('/book', userController.book);
-
 module.exports = router;

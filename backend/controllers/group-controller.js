@@ -4,6 +4,7 @@ const HttpCodes = require('../enums/http-codes');
 const InviteStatus = require('../enums/invite-status');
 const Group = require('../models/group');
 const Expense = require('../models/expenses');
+const kafka = require('../kafka/client');
 
 // create new group
 const createGroup = async (req, res) => {
@@ -145,59 +146,18 @@ const leaveGroup = async (req, res) => {
 
 // add new expense in group
 const addNewExpense = async (req, res) => {
-  const { groupId, description, totalExpense, lenderId, lenderName } = req.body;
-
-  try {
-    const currentGroup = await Group.findById(ObjectId(groupId));
-
-    const allMembersWithOwner = currentGroup.members;
-    const allMembers = allMembersWithOwner.filter(
-      (member) => member.toString() !== lenderId
-    );
-    console.log(allMembers.length);
-
-    const individualExpense =
-      allMembers.length > 0 ? totalExpense / (allMembers.length + 1) : 0;
-
-    if (individualExpense > 0) {
-      const expenseDetails = [];
-      allMembers.forEach((memberId) => {
-        expenseDetails.push({
-          groupId: ObjectId(groupId),
-          borrowerId: ObjectId(memberId),
-          lenderId: ObjectId(lenderId),
-          lenderName,
-          expense: individualExpense,
-          isSettled: false,
-        });
-      });
-
-      const newExpense = new Expense({
-        groupId: ObjectId(groupId),
-        description,
-        totalExpense,
-        lenderId: ObjectId(lenderId),
-        lenderName,
-        expenseDetails,
-      });
-      const expense = await newExpense.save();
-
-      res.status(HttpCodes.OK).send({
-        message: `You have successfully added expense.`,
-        result: expense,
-      });
-    } else {
-      res.status(HttpCodes.InternalServerError).send({
-        message: `No members in group currently.`,
-        result: null,
-      });
+  kafka.make_request(
+    'api_req',
+    req.body,
+    'addNewExpense-service',
+    (err, result) => {
+      if (err) {
+        res.status(HttpCodes.InternalServerError).send(result);
+      } else {
+        res.status(HttpCodes.OK).send(result);
+      }
     }
-  } catch (err) {
-    res.status(HttpCodes.InternalServerError).send({
-      message: 'Unable to add expense, some error occured.',
-      result: err,
-    });
-  }
+  );
 };
 
 // get expenses by group id
