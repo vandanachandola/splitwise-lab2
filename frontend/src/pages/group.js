@@ -13,12 +13,16 @@ import {
 import axios from 'axios';
 import { withStyles } from '@material-ui/styles';
 import numeral from 'numeral';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
+import swal from 'sweetalert';
 
 import Navigation from '../components/navigation';
 import DashboardMenu from '../components/dashboard-menu';
 import '../shared/styles.css';
 import config from '../shared/config';
 import UserAuth from '../shared/user-auth';
+import itemImg from '../images/item.png';
 
 const styles = () => ({
   root: {
@@ -56,6 +60,14 @@ const styles = () => ({
     fontSize: '16px',
     fontWeight: '500',
   },
+  redirect: {
+    textDecoration: 'none',
+    color: '#999',
+    '&:hover': {
+      color: 'black',
+      textDecoration: 'none',
+    },
+  },
 });
 
 class Group extends Component {
@@ -66,35 +78,57 @@ class Group extends Component {
       description: '',
       expense: 0,
       expenses: [],
-      showModal: false,
+      showExpenseModal: false,
+      showExpenseDetails: false,
+      activeExpense: {},
       errorMsg: '',
       groupId: props.match.params.id,
-      groupName: props.location.state.group.name,
+      groupName: '',
       self: UserAuth.getName(),
       selectedLink: `group_${props.match.params.id}`,
+      comment: '',
+      allComments: [],
     };
 
     this.handleOpen = this.handleOpen.bind(this);
     this.handleClose = this.handleClose.bind(this);
     this.descriptionChange = this.descriptionChange.bind(this);
     this.expenseChange = this.expenseChange.bind(this);
+    this.closeExpenseDetails = this.closeExpenseDetails.bind(this);
+    this.onExpenseLinkClick = this.onExpenseLinkClick.bind(this);
+    this.postComment = this.postComment.bind(this);
+    this.inputChangeHandler = this.inputChangeHandler.bind(this);
+    this.getComments = this.getComments.bind(this);
+    this.deleteComment = this.deleteComment.bind(this);
   }
 
   componentDidMount() {
-    // this.getGroupInfo();
+    this.getGroupInfo();
     this.getExpenseInfo();
   }
 
   handleOpen() {
     this.setState({
-      showModal: true,
+      showExpenseModal: true,
     });
   }
 
   handleClose() {
     this.setState({
-      showModal: false,
+      showExpenseModal: false,
     });
+  }
+
+  onExpenseLinkClick(e, expense) {
+    this.setState(
+      {
+        showExpenseDetails: true,
+        activeExpense: expense,
+      },
+      () => {
+        this.getComments();
+      }
+    );
   }
 
   getExpenseInfo() {
@@ -137,6 +171,39 @@ class Group extends Component {
           groupName: resp.data.result ? resp.data.result.name : '',
         });
       });
+  }
+
+  getComments() {
+    const { activeExpense } = this.state;
+    axios
+      .get(`${config.server.url}/api/groups/get-comments`, {
+        params: { expenseId: activeExpense._id },
+      })
+      .then((res) => {
+        if (res.status === 200) {
+          this.setState({
+            allComments:
+              res.data.result && res.data.result.length > 0
+                ? [...res.data.result[0]]
+                : [],
+          });
+        }
+      })
+      .catch((err) => {
+        if (err.response) {
+          const alert = {
+            type: AlertType.Error,
+            message: err.response.data.message,
+          };
+          this.props.setAlertMessage(alert);
+        }
+      });
+  }
+
+  closeExpenseDetails() {
+    this.setState({
+      showExpenseDetails: false,
+    });
   }
 
   descriptionChange(e) {
@@ -198,21 +265,108 @@ class Group extends Component {
       });
   }
 
+  postComment(comment) {
+    const { activeExpense } = this.state;
+    this.setState({
+      comment: '',
+    });
+    axios
+      .post(`${config.server.url}/api/groups/post-comment`, {
+        expenseId: activeExpense._id,
+        userId: UserAuth.getUserId(),
+        userName: UserAuth.getName(),
+        text: comment,
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          this.setState({
+            successMsg: response.data.message,
+            errorMsg: '',
+          });
+        }
+        return response.data.result;
+      })
+      .then(() => this.getComments())
+      //   .then((response) => {
+      //     this.recordTransaction(response);
+      //   })
+      .catch((err) => {
+        if (err.response.status === 500) {
+          this.setState({
+            successMsg: '',
+            errorMsg: err.response.data.message,
+          });
+        }
+      });
+  }
+
+  inputChangeHandler(e) {
+    const { name } = e.target;
+    this.setState({
+      [name]: e.target.value,
+    });
+  }
+
+  deleteComment(comment) {
+    swal({
+      title: 'Are you sure?',
+      text: 'Once deleted, you will not be able to recover this comment!',
+      icon: 'warning',
+      buttons: true,
+      dangerMode: true,
+    }).then((willDelete) => {
+      if (willDelete) {
+        const { activeExpense } = this.state;
+        const expenseId = activeExpense._id;
+        const commentId = comment._id;
+        axios
+          .post(`${config.server.url}/api/groups/delete-comment`, {
+            expenseId,
+            commentId,
+          })
+          .then((response) => {
+            if (response.status === 200) {
+              this.setState({
+                successMsg: response.data.message,
+                errorMsg: '',
+              });
+            }
+            return response.data.result;
+          })
+          .then(() => this.getComments())
+          //   .then((response) => {
+          //     this.recordTransaction(response);
+          //   })
+          .catch((err) => {
+            if (err.response.status === 500) {
+              this.setState({
+                successMsg: '',
+                errorMsg: err.response.data.message,
+              });
+            }
+          });
+      }
+    });
+  }
+
   render() {
     const {
       expenses,
       description,
       expense,
-      showModal,
+      showExpenseModal,
+      showExpenseDetails,
+      activeExpense,
       successMsg,
       errorMsg,
       groupId,
       groupName,
       self,
       selectedLink,
+      comment,
+      allComments,
     } = this.state;
     const { classes } = this.props;
-    console.log(expenses);
     return (
       <div>
         <Navigation />
@@ -254,7 +408,10 @@ class Group extends Component {
                       <Card className={classes.row}>
                         <ListGroup variant="flush">
                           <ListGroup.Item>
-                            <Row>
+                            <Row
+                              className={classes.redirect}
+                              onClick={(e) => this.onExpenseLinkClick(e, item)}
+                            >
                               <Col sm={1}>
                                 <div className={classes.month}>
                                   {new Date(item.updatedAt).toLocaleString(
@@ -297,9 +454,9 @@ class Group extends Component {
             </div>
           </Container>
 
-          {showModal && (
+          {showExpenseModal && (
             <Modal
-              show={showModal}
+              show={showExpenseModal}
               onHide={this.handleClose}
               size="md"
               centered
@@ -338,6 +495,85 @@ class Group extends Component {
                   onClick={() => this.addAnExpense(description, expense)}
                 >
                   Save
+                </button>
+              </Modal.Footer>
+            </Modal>
+          )}
+
+          {showExpenseDetails && (
+            <Modal
+              show={showExpenseDetails}
+              onHide={this.closeExpenseDetails}
+              size="lg"
+              centered
+            >
+              <Modal.Header closeButton>
+                <img
+                  src={itemImg}
+                  alt="item"
+                  style={{ width: '5rem', height: '5rem', marginRight: '1rem' }}
+                />
+                <Modal.Title>
+                  <h5>{activeExpense.description}</h5>
+                  <h6>{numeral(activeExpense.totalExpense).format('$0.00')}</h6>
+                  <span style={{ fontSize: '0.75rem' }}>
+                    <em>
+                      {`Added by ${activeExpense.lenderName}
+                      on 
+                      ${new Date(activeExpense.updatedAt).toDateString()}`}
+                    </em>
+                  </span>
+                </Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <strong>NOTES AND COMMENTS</strong>
+                <div style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+                  {allComments.map((input) => (
+                    <Card>
+                      <Card.Body>
+                        <Card.Title>
+                          <IconButton
+                            style={{
+                              float: 'right',
+                              width: '1.5rem',
+                              height: '1.5rem',
+                              fontSize: 'small',
+                              marginTop: '-1rem',
+                              marginRight: '-1rem',
+                            }}
+                            onClick={() => this.deleteComment(input)}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                        </Card.Title>
+                        <Card.Text>
+                          <span>
+                            <strong>{input.userName}</strong>
+                          </span>
+                        </Card.Text>
+                        <Card.Text>{input.text}</Card.Text>
+                      </Card.Body>
+                    </Card>
+                  ))}
+                </div>
+                <div>
+                  <textarea
+                    name="comment"
+                    rows="4"
+                    style={{ width: '100%' }}
+                    placeholder="Add a comment"
+                    onChange={this.inputChangeHandler}
+                  />
+                </div>
+              </Modal.Body>
+              <Modal.Footer>
+                <button
+                  className="btn btn-large btn-mint"
+                  variant="primary"
+                  type="button"
+                  onClick={() => this.postComment(comment)}
+                >
+                  Post
                 </button>
               </Modal.Footer>
             </Modal>

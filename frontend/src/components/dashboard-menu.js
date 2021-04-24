@@ -107,7 +107,7 @@ class DashboardMenu extends Component {
           {groups.map((input, index) => (
             <LinkContainer
               key={input._id}
-              to={{ pathname: `/group/${input._id}`, state: { group: input } }}
+              to={`/group/${input._id}`}
               className={
                 selectedLink === `group_${input._id}` ? classes.selected : ''
               }

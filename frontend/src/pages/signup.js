@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import axios from 'axios';
 
 import { setAlertMessage, setCurrentUser } from '../redux-store/actions';
-import Navigation from '../components/navigation';
+import NavigationWhite from '../components/navigation-white';
 import logo from '../images/default-group-logo.svg';
 import FormErrors from '../shared/form-errors';
 import AlertType from '../enums/alert-type';
@@ -142,7 +142,7 @@ class Signup extends Component {
     const { formErrors, isFormValid } = this.state;
     return (
       <div>
-        <Navigation />
+        <NavigationWhite />
 
         {this.props.alert && this.props.alert.type === 'error' && (
           <Alert variant="danger" style={{ margin: '1rem' }}>

@@ -88,14 +88,24 @@ class MyGroups extends Component {
       e.preventDefault();
     }
 
-    const data = {
-      inviteeId: UserAuth.getUserId(),
-      groupId,
-      updateType: status,
-    };
-
+    let data = {};
+    let apiEndpoint = '';
+    if (status === InviteStatus.Left) {
+      data = {
+        userId: UserAuth.getUserId(),
+        groupId,
+      };
+      apiEndpoint = `${config.server.url}/api/groups/leave-group`;
+    } else {
+      data = {
+        inviteeId: UserAuth.getUserId(),
+        groupId,
+        updateType: status,
+      };
+      apiEndpoint = `${config.server.url}/api/groups/my-groups`;
+    }
     axios
-      .post(`${config.server.url}/api/groups/my-groups`, data)
+      .post(apiEndpoint, data)
       .then((response) => {
         if (response.status === 200) {
           const alert = {
@@ -133,11 +143,11 @@ class MyGroups extends Component {
       })
       .then((response) => {
         if (response.status === 200) {
-          const { owesAmount, owedAmount } = response.data.result[0];
-          if (!owesAmount && !owedAmount) {
+          if (response.data.result && response.data.result.length > 0) {
+            this.handleOpen();
+          } else {
             return { groupId, status };
           }
-          this.handleOpen();
         }
         return null;
       })
@@ -204,7 +214,7 @@ class MyGroups extends Component {
           {groups.length === 0 && <em>No groups to show</em>}
           {groups.map((input) => (
             <Link
-              to={{ pathname: `/group/${input._id}`, state: { group: input } }}
+              to={`/group/${input._id}`}
               className={classes.redirect}
               onClick={(e) =>
                 this.onLinkClick(

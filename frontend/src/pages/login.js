@@ -5,7 +5,8 @@ import { connect } from 'react-redux';
 import axios from 'axios';
 
 import { setCurrentUser, setAlertMessage } from '../redux-store/actions/index';
-import Navigation from '../components/navigation';
+import NavigationWhite from '../components/navigation-white';
+
 import logo from '../images/default-group-logo.svg';
 import FormErrors from '../shared/form-errors';
 import config from '../shared/config';
@@ -39,18 +40,26 @@ class Login extends Component {
       .post(`${config.server.url}/api/users/login`, data)
       .then((response) => {
         if (response.status === 200) {
-          const user = {
-            id: response.data.result._id,
-            emailId: response.data.result.emailId,
-            name: response.data.result.name,
-            token: response.data.token,
-          };
-          const alert = {
-            type: AlertType.Success,
-            message: response.data.message.message,
-          };
-          this.props.setCurrentUser(user);
-          this.props.setAlertMessage(alert);
+          if (response.data.result) {
+            const user = {
+              id: response.data.result._id,
+              emailId: response.data.result.emailId,
+              name: response.data.result.name,
+              token: response.data.token,
+            };
+            const alert = {
+              type: AlertType.Success,
+              message: response.data.message,
+            };
+            this.props.setCurrentUser(user);
+            this.props.setAlertMessage(alert);
+          } else {
+            const alert = {
+              type: AlertType.Error,
+              message: response.data.message,
+            };
+            this.props.setAlertMessage(alert);
+          }
         }
       })
       .catch((err) => {
@@ -116,7 +125,7 @@ class Login extends Component {
 
     return (
       <div>
-        <Navigation />
+        <NavigationWhite />
 
         {this.props.alert && this.props.alert.type === 'error' && (
           <Alert variant="danger" style={{ margin: '1rem' }}>

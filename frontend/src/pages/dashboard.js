@@ -109,6 +109,8 @@ class Dashboard extends Component {
 
   componentDidMount() {
     this.getDashboardInfo();
+    this.getBorrowedFromInfo();
+    this.getLendedToInfo();
   }
 
   handleClose() {
@@ -120,6 +122,9 @@ class Dashboard extends Component {
   handleOpen() {
     this.setState({
       showModal: true,
+      isSettleUpSuccess: false,
+      successMsg: '',
+      errorMsg: '',
     });
   }
 
@@ -127,7 +132,7 @@ class Dashboard extends Component {
     console.log(value);
     this.setState({
       selectedUserName: value.name,
-      selectedUserId: value.user_id,
+      selectedUserId: value.id,
     });
   }
 
@@ -140,15 +145,14 @@ class Dashboard extends Component {
       })
       .then((response) => {
         if (response.status === 200) {
+          let youOweAmt = 0;
+          let youAreOwedAmt = 0;
+          if (response.data.result && response.data.result.length > 0) {
+            [youOweAmt, youAreOwedAmt] = response.data.result;
+          }
           this.setState({
-            youOwe: response.data.result[0].owesAmount
-              ? response.data.result[0].owesAmount
-              : 0.0,
-            youAreOwed: response.data.result[1].owedAmount
-              ? response.data.result[1].owedAmount
-              : 0.0,
-            owesList: response.data.result ? response.data.result[2] : [],
-            owedList: response.data.result ? response.data.result[3] : [],
+            youOwe: youOweAmt,
+            youAreOwed: youAreOwedAmt,
             errorMsg: '',
           });
         }
@@ -162,7 +166,90 @@ class Dashboard extends Component {
       });
   }
 
-  // eslint-disable-next-line class-methods-use-this
+  getBorrowedFromInfo() {
+    axios
+      .get(`${config.server.url}/api/groups/get-borrow`, {
+        params: {
+          userId: UserAuth.getUserId(),
+        },
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          const youOweInfo = [];
+          if (response.data.result && response.data.result.length > 0) {
+            const expenseInfo = response.data.result[0];
+            const userInfo = response.data.result[1];
+
+            expenseInfo.forEach((element) => {
+              const user = userInfo.filter(
+                (item) => item._id === element.lenderId
+              )[0];
+              const info = {
+                id: user._id,
+                amount: element.expense,
+                name: user.name,
+                profile_picture: user.profilePicture,
+              };
+              youOweInfo.push(info);
+            });
+          }
+          this.setState({
+            owesList: youOweInfo || [],
+            errorMsg: '',
+          });
+        }
+      })
+      .catch((err) => {
+        if (err.response) {
+          this.setState({
+            errorMsg: err.response.data.message,
+          });
+        }
+      });
+  }
+
+  getLendedToInfo() {
+    axios
+      .get(`${config.server.url}/api/groups/get-lended`, {
+        params: {
+          userId: UserAuth.getUserId(),
+        },
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          const youAreOwedInfo = [];
+          if (response.data.result && response.data.result.length > 0) {
+            const expenseInfo = response.data.result[0];
+            const userInfo = response.data.result[1];
+
+            expenseInfo.forEach((element) => {
+              const user = userInfo.filter(
+                (item) => item._id === element.borrowerId
+              )[0];
+              const info = {
+                id: user._id,
+                amount: element.expense,
+                name: user.name,
+                profile_picture: user.profilePicture,
+              };
+              youAreOwedInfo.push(info);
+            });
+          }
+          this.setState({
+            owedList: youAreOwedInfo || [],
+            errorMsg: '',
+          });
+        }
+      })
+      .catch((err) => {
+        if (err.response) {
+          this.setState({
+            errorMsg: err.response.data.message,
+          });
+        }
+      });
+  }
+
   settleUp() {
     const { selectedUserId } = this.state;
     axios
@@ -177,7 +264,7 @@ class Dashboard extends Component {
             successMsg: response.data.message,
             errorMsg: '',
           });
-          this.recordTransaction();
+          // this.recordTransaction();
         }
         return response.data.result;
       })
@@ -319,10 +406,10 @@ class Dashboard extends Component {
                             <Row>
                               <Col sm={2} style={{ width: '3rem !important' }}>
                                 <Avatar
-                                  alt="user"
+                                  alt={item.name}
                                   src={
                                     item.profile_picture
-                                      ? `${config.server.url}/${item.profile_picture}`
+                                      ? item.profile_picture
                                       : defaultAvatar
                                   }
                                   className={classes.avatar}
@@ -360,10 +447,10 @@ class Dashboard extends Component {
                             <Row>
                               <Col sm={2} style={{ width: '3rem !important' }}>
                                 <Avatar
-                                  alt="user"
+                                  alt={item.name}
                                   src={
                                     item.profile_picture
-                                      ? `${config.server.url}/${item.profile_picture}`
+                                      ? item.profile_picture
                                       : defaultAvatar
                                   }
                                   className={classes.avatar}
@@ -404,7 +491,7 @@ class Dashboard extends Component {
               <Modal.Body>
                 <Autocomplete
                   id="combo-box-demo"
-                  options={owedList}
+                  options={Array.from(owedList)}
                   getOptionLabel={(option) => option.name}
                   onChange={this.onUserSelect}
                   size="small"
@@ -423,8 +510,7 @@ class Dashboard extends Component {
                   <Col sm={6}>
                     {isSettleUpSuccess && (
                       <div className={classes.isSettleUpSuccess}>
-                        You have successfully settled up with {selectedUserName}
-                        !
+                        You settled up with {selectedUserName}!
                       </div>
                     )}
                   </Col>
