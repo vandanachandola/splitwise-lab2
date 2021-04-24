@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const config = require('../config');
 
-async function handleRequest(req, callback) {
+async function handleRequestInternal(req, callback) {
   const { emailId, password } = req;
   try {
     const user = await User.findOne({ emailId });
@@ -58,4 +58,4 @@ async function handleRequest(req, callback) {
   }
 }
 
-exports.handle_request = handleRequest;
+exports.handleRequest = handleRequestInternal;

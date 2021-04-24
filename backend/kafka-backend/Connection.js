@@ -5,7 +5,7 @@ function ConnectionProvider() {
   this.getConsumer = function (topicName) {
     this.client = new kafka.KafkaClient(config.kafka.url);
     this.kafkaConsumerConnection = new kafka.Consumer(this.client, [
-      { topic: topicName, partition: 0 },
+      { topic: topicName, partition: 0, fromBeginning: false },
     ]);
     this.client.on('ready', () => {
       console.log('client ready...');

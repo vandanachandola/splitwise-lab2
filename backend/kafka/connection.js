@@ -1,47 +1,28 @@
-/* eslint-disable no-multi-assign */
-/* eslint-disable vars-on-top */
-/* eslint-disable prefer-destructuring */
-/* eslint-disable prefer-arrow-callback */
-/* eslint-disable spaced-comment */
-/* eslint-disable camelcase */
-/* eslint-disable no-var */
-var kafka = require('kafka-node');
+const kafka = require('kafka-node');
+const config = require('../config');
 
 function ConnectionProvider() {
-  this.getConsumer = function (topic_name) {
-    // if (!this.kafkaConsumerConnection) {
-
-    this.client = new kafka.KafkaClient('localhost:2181');
-    /*this.client.refreshMetadata([{topic: topic_name}], (err) => {
-                if (err) {
-                    console.warn('Error refreshing kafka metadata', err);
-                }
-            });*/
+  this.getConsumer = function (topicName) {
+    this.client = new kafka.KafkaClient(config.kafka.url);
     this.kafkaConsumerConnection = new kafka.Consumer(this.client, [
-      { topic: topic_name, partition: 0 },
+      { topic: topicName, partition: 0, fromBeginning: false },
     ]);
-    this.client.on('ready', function () {
+    this.client.on('ready', () => {
       console.log('client ready!');
     });
-    // }
     return this.kafkaConsumerConnection;
   };
 
-  //Code will be executed when we start Producer
   this.getProducer = function () {
     if (!this.kafkaProducerConnection) {
-      this.client = new kafka.KafkaClient('localhost:2181');
-      /*this.client.refreshMetadata([{topic: topic_name}], (err) => {
-                if (err) {
-                    console.warn('Error refreshing kafka metadata', err);
-                }
-            });*/
-      var HighLevelProducer = kafka.HighLevelProducer;
+      this.client = new kafka.KafkaClient(config.kafka.url);
+      const { HighLevelProducer } = kafka;
       this.kafkaProducerConnection = new HighLevelProducer(this.client);
-      //this.kafkaConnection = new kafka.Producer(this.client);
       console.log('producer ready');
     }
     return this.kafkaProducerConnection;
   };
 }
-exports = module.exports = new ConnectionProvider();
+
+module.exports = new ConnectionProvider();
+exports = module.exports;

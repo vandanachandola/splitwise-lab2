@@ -20,6 +20,13 @@ const expenseSchema = new Schema(
         isSettled: { type: Boolean },
       },
     ],
+    comments: [
+      {
+        userId: { type: Schema.Types.ObjectId, ref: 'User' },
+        userName: { type: String },
+        text: { type: String },
+      },
+    ],
   },
   { timestamps: true }
 );

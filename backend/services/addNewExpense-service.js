@@ -3,7 +3,7 @@ const { ObjectId } = require('mongodb');
 const Group = require('../models/group');
 const Expense = require('../models/expenses');
 
-async function handleRequest(req, callback) {
+async function handleRequestInternal(req, callback) {
   const { groupId, description, totalExpense, lenderId, lenderName } = req;
 
   try {
@@ -38,6 +38,7 @@ async function handleRequest(req, callback) {
         lenderId: ObjectId(lenderId),
         lenderName,
         expenseDetails,
+        comments: [],
       });
       const expense = await newExpense.save();
 
@@ -65,4 +66,4 @@ async function handleRequest(req, callback) {
   }
 }
 
-exports.handle_request = handleRequest;
+exports.handleRequest = handleRequestInternal;

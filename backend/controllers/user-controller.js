@@ -3,14 +3,12 @@ const jwt = require('jsonwebtoken');
 const { ObjectId } = require('mongodb');
 
 const HttpCodes = require('../enums/http-codes');
-const HttpResponse = require('../models/http-response');
 const User = require('../models/user');
 const config = require('../config');
-const upload = require('../middleware/image-upload');
 const kafka = require('../kafka/client');
 
 // login existing user
-const login = async (req, res) => {
+const loginInternal = async (req, res) => {
   kafka.make_request('api_req', req.body, 'login-service', (err, result) => {
     if (err) {
       res.status(HttpCodes.InternalServerError).send(result);
@@ -21,7 +19,7 @@ const login = async (req, res) => {
 };
 
 // signup new user
-const signup = async (req, res) => {
+const signupInternal = async (req, res) => {
   const { emailId, password, name } = req.body;
   let existingUser;
   try {
@@ -82,7 +80,7 @@ const signup = async (req, res) => {
 };
 
 // get user profile details
-const getProfile = async (req, res) => {
+const getProfileInternal = async (req, res) => {
   User.findOne({ _id: req.query.id })
     .then((user) => {
       res.status(HttpCodes.OK).send({
@@ -99,7 +97,7 @@ const getProfile = async (req, res) => {
 };
 
 // set user profile details
-const setProfile = async (req, res) => {
+const setProfileInternal = async (req, res) => {
   const {
     id,
     emailId,
@@ -157,7 +155,7 @@ const setProfile = async (req, res) => {
 };
 
 // search user by name or email
-const searchUser = async (req, res) => {
+const searchUserInternal = async (req, res) => {
   const { searchTerm, userId } = req.query;
   User.find(
     {
@@ -182,8 +180,25 @@ const searchUser = async (req, res) => {
   );
 };
 
-exports.login = login;
-exports.signup = signup;
-exports.getProfile = getProfile;
-exports.setProfile = setProfile;
-exports.searchUser = searchUser;
+const getUserInternal = async (req, res) => {
+  const { userId } = req.query;
+  try {
+    const user = await User.findById(ObjectId(userId));
+    res.status(HttpCodes.OK).send({
+      message: 'Request successful.',
+      result: user,
+    });
+  } catch (err) {
+    res.status(HttpCodes.InternalServerError).send({
+      message: 'Unable to save changes, some error occured.',
+      result: err,
+    });
+  }
+};
+
+exports.login = loginInternal;
+exports.signup = signupInternal;
+exports.getProfile = getProfileInternal;
+exports.setProfile = setProfileInternal;
+exports.searchUser = searchUserInternal;
+exports.getUser = getUserInternal;

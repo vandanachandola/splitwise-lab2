@@ -38,4 +38,7 @@ router.post(
 // search user whose emailId or name matches the search term
 router.get('/search-user', userController.searchUser);
 
+// get user by id
+router.get('/get-user', userController.getUser);
+
 module.exports = router;
