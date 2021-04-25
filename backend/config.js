@@ -20,7 +20,7 @@ config.awss3.AWS_ACL_ACCESS_CONTROL = 'public-read';
 
 config.kafka = {};
 config.kafka.port = 5001;
-config.kafka.host = 'http://52.14.30.76';
+config.kafka.host = 'http://3.138.175.136';
 config.kafka.serverport = 2181;
 config.kafka.url = `${config.kafka.host}:${config.kafka.serverport}`;
 
