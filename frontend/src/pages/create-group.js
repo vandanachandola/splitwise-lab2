@@ -44,6 +44,14 @@ class CreateGroup extends Component {
     this.onSaveClick = this.onSaveClick.bind(this);
   }
 
+  componentWillUnmount() {
+    const alert = {
+      type: '',
+      message: '',
+    };
+    this.props.setAlertMessage(alert);
+  }
+
   async onSearch(val) {
     const res = await search(`${config.server.url}/api/users/search-user`, {
       searchTerm: val,
@@ -122,6 +130,14 @@ class CreateGroup extends Component {
         if (group) {
           this.recordTransaction(group.groupId, group.groupName);
         }
+      })
+      .then(() => {
+        this.setState({
+          Name: '',
+          Members: [],
+          Invitees: [],
+          GroupPicture: null,
+        });
       })
       .catch((err) => {
         if (err.response.status === 500 || err.response.status === 400) {

@@ -5,7 +5,6 @@ import './App.css';
 import PrivateRoute from './components/private-route';
 import Login from './pages/login';
 import Signup from './pages/signup';
-import LandingPage from './pages/landing-page';
 import Dashboard from './pages/dashboard';
 import Activity from './pages/activity';
 import CreateGroup from './pages/create-group';
@@ -31,7 +30,7 @@ function App() {
         path="/"
         exact
         trueComponent={redirectToDashboard}
-        falseComponent={LandingPage}
+        falseComponent={Login}
         decisionFunc={isUserLoggedIn}
       />
       <Route path="/login">

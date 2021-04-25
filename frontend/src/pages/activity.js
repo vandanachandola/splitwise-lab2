@@ -45,20 +45,22 @@ class Activity extends Component {
       activities: [],
       rowsPerPage: 2,
       page: 0,
+      groups: [],
     };
     this.handleChangeRowsPerPage = this.handleChangeRowsPerPage.bind(this);
     this.handleChangePage = this.handleChangePage.bind(this);
     this.onChangeSortOrder = this.onChangeSortOrder.bind(this);
+    this.renderGroupOptions = this.renderGroupOptions.bind(this);
+    this.onChangeGroup = this.onChangeGroup.bind(this);
   }
 
   componentDidMount() {
     this.getRecentActivity();
+    this.getMyGroups();
   }
 
   handleChangeRowsPerPage(event) {
-    console.log(event);
     const newRowsPerPage = event.target.value;
-    console.log(newRowsPerPage);
     this.setState(
       {
         page: 0,
@@ -71,14 +73,12 @@ class Activity extends Component {
   }
 
   handleChangePage(event, newPage) {
-    console.log(newPage);
     this.setState({
       page: newPage,
     });
   }
 
   onChangeSortOrder(event) {
-    console.log(event);
     const sortOrder = event.target.value;
     const { activities } = this.state;
     if (sortOrder === 'desc') {
@@ -111,6 +111,24 @@ class Activity extends Component {
     }
   }
 
+  onChangeGroup(event) {
+    const selectedGroupId = event.target.value;
+    if (selectedGroupId !== 'default') {
+      const { activities } = this.state;
+      const selectedGroupActivities = activities.filter(
+        (activity) => activity.groupId === selectedGroupId
+      );
+      this.setState(
+        {
+          activities: selectedGroupActivities,
+        },
+        () => this.paginateAllActivities
+      );
+    } else {
+      this.getRecentActivity();
+    }
+  }
+
   getRecentActivity() {
     axios
       .get(`${config.server.url}/api/transactions/transaction`, {
@@ -135,6 +153,28 @@ class Activity extends Component {
       });
   }
 
+  getMyGroups() {
+    axios
+      .get(`${config.server.url}/api/groups/my-groups`, {
+        params: { userId: UserAuth.getUserId() },
+      })
+      .then((res) => {
+        if (res.status === 200) {
+          if (res.data.result) {
+            const onlyAcceptedGroups = Array.from(res.data.result).filter(
+              (item) =>
+                item.members && item.members.includes(UserAuth.getUserId())
+            );
+
+            this.setState({ groups: [...onlyAcceptedGroups] });
+          }
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
   paginateAllActivities() {
     const { activities, rowsPerPage } = this.state;
     const noOfPages = Math.ceil(activities.length / rowsPerPage);
@@ -151,12 +191,19 @@ class Activity extends Component {
     });
   }
 
+  renderGroupOptions() {
+    const { groups } = this.state;
+
+    return groups.map((group, i) => (
+      <option key={i} value={group._id}>
+        {group.name}
+      </option>
+    ));
+  }
+
   render() {
     const { activities, paginatedActivities, rowsPerPage, page } = this.state;
     const { classes } = this.props;
-    console.log('new', rowsPerPage);
-    console.log(this.state);
-    console.log('pagi', paginatedActivities[page]);
     return (
       <div>
         <Navigation />
@@ -177,6 +224,19 @@ class Activity extends Component {
                   >
                     <option value="desc">Most Recent First</option>
                     <option value="asc">Most Recent Last</option>
+                  </NativeSelect>
+
+                  <NativeSelect
+                    defaultValue="default"
+                    onChange={this.onChangeGroup}
+                    style={{
+                      float: 'left',
+                      marginTop: '0.5rem',
+                      marginLeft: '1rem',
+                    }}
+                  >
+                    <option value="default">Select Group</option>
+                    {this.renderGroupOptions()}
                   </NativeSelect>
 
                   <TablePagination

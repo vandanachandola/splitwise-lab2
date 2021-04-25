@@ -3,6 +3,7 @@ import { Redirect } from 'react-router-dom';
 import { Form, Alert, Col, Container, Row } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import axios from 'axios';
+import swal from 'sweetalert';
 
 import { setAlertMessage, setCurrentUser } from '../redux-store/actions';
 import NavigationWhite from '../components/navigation-white';
@@ -32,6 +33,14 @@ class Signup extends Component {
     this.onSignupClick = this.onSignupClick.bind(this);
   }
 
+  componentWillUnmount() {
+    const alert = {
+      type: '',
+      message: '',
+    };
+    this.props.setAlertMessage(alert);
+  }
+
   onSignupClick(e) {
     e.preventDefault();
     const { emailId, name, password } = this.state;
@@ -46,18 +55,26 @@ class Signup extends Component {
       .then((response) => {
         console.log(response);
         if (response.status === 200) {
-          const user = {
-            id: response.data.result._id,
-            emailId: response.data.result.emailId,
-            name: response.data.result.name,
-            token: response.data.token,
-          };
-          const alert = {
-            type: AlertType.Success,
-            message: response.data.message.message,
-          };
-          this.props.setCurrentUser(user);
-          this.props.setAlertMessage(alert);
+          swal({
+            title: 'Congrats!',
+            text: response.data.message,
+            icon: 'success',
+            button: false,
+            timer: 1000,
+          }).then(() => {
+            const user = {
+              id: response.data.result._id,
+              emailId: response.data.result.emailId,
+              name: response.data.result.name,
+              token: response.data.token,
+            };
+            const alert = {
+              type: AlertType.Success,
+              message: response.data.message.message,
+            };
+            this.props.setCurrentUser(user);
+            this.props.setAlertMessage(alert);
+          });
         }
       })
       .catch((err) => {

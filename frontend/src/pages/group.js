@@ -296,9 +296,11 @@ class Group extends Component {
         return response.data.result;
       })
       .then(() => this.getComments())
-      //   .then((response) => {
-      //     this.recordTransaction(response);
-      //   })
+      .then(() =>
+        this.setState({
+          comment: '',
+        })
+      )
       .catch((err) => {
         if (err.response.status === 500) {
           this.setState({
@@ -584,6 +586,7 @@ class Group extends Component {
                 <div>
                   <textarea
                     name="comment"
+                    value={comment}
                     rows="4"
                     style={{ width: '100%' }}
                     placeholder="Add a comment"

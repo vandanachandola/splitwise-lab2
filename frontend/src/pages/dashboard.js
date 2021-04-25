@@ -99,8 +99,6 @@ class Dashboard extends Component {
       showModal: false,
       selectedUserName: '',
       selectedUserId: '',
-      selectedGroupId: '',
-      selectedGroupName: '',
       isSettleUpSuccess: false,
     };
 
@@ -134,8 +132,6 @@ class Dashboard extends Component {
     this.setState({
       selectedUserName: value.borrowerName,
       selectedUserId: value.id,
-      selectedGroupId: value.groupId,
-      selectedGroupName: value.groupName,
     });
   }
 
@@ -300,10 +296,10 @@ class Dashboard extends Component {
         }
         return response.data.result;
       })
+      .then((settledGroups) => this.recordTransaction(settledGroups))
       .then(() => {
         this.refreshDashboard();
       })
-      .then(() => this.recordTransaction())
       .catch((err) => {
         if (err.response) {
           this.setState({
@@ -321,28 +317,16 @@ class Dashboard extends Component {
     this.getLendedToInfo();
   }
 
-  recordTransaction() {
-    const {
-      selectedUserName,
-      selectedUserId,
-      selectedGroupId,
-      selectedGroupName,
-    } = this.state;
-    const entries = [
-      {
-        description: ` settled up with ${selectedUserName} in group "${selectedGroupName}".`,
-        userName: UserAuth.getName(),
-        userId: UserAuth.getUserId(),
-      },
-    ];
+  recordTransaction(settledGroups) {
+    const { selectedUserName } = this.state;
 
-    entries.forEach((item) => {
+    Object.entries(settledGroups).forEach(([key, value]) => {
       const data = {
-        userId: item.userId,
-        groupId: selectedGroupId,
-        userName: item.userName,
-        groupName: selectedGroupName,
-        description: item.description,
+        userId: UserAuth.getUserId(),
+        userName: UserAuth.getName(),
+        groupId: key,
+        groupName: value,
+        description: ` settled up with ${selectedUserName} in group "${value}".`,
         type: TransactionType.SettleUp,
       };
       axios.post(`${config.server.url}/api/transactions/transaction`, data);

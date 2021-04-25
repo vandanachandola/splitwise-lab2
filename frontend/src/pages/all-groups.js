@@ -71,6 +71,14 @@ class AllGroups extends Component {
     this.getMyGroups();
   }
 
+  componentWillUnmount() {
+    const alert = {
+      type: '',
+      message: '',
+    };
+    this.props.setAlertMessage(alert);
+  }
+
   handleOpen() {
     this.setState({
       showModal: true,

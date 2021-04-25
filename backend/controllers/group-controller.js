@@ -435,7 +435,23 @@ const deleteCommentInternal = async (req, res) => {
 const settleUpExpensesInternal = async (req, res) => {
   const { userId, selectedUserId } = req.body;
   try {
-    const settledUpAccount = await Expense.updateMany(
+    const expenses = await Expense.find({
+      lenderId: ObjectId(userId),
+      'expenseDetails.borrowerId': ObjectId(selectedUserId),
+    });
+
+    const settledGroups = {};
+
+    const expenseDetails = expenses.map((expense) =>
+      expense.expenseDetails.toObject()
+    );
+    expenseDetails.forEach((expenseDetailArr) => {
+      expenseDetailArr.forEach((expenseDetail) => {
+        settledGroups[expenseDetail.groupId] = expenseDetail.groupName;
+      });
+    });
+
+    await Expense.updateMany(
       {
         lenderId: ObjectId(userId),
         'expenseDetails.borrowerId': ObjectId(selectedUserId),
@@ -446,7 +462,7 @@ const settleUpExpensesInternal = async (req, res) => {
 
     res.status(HttpCodes.OK).send({
       message: `You have successfully settled all your expenses.`,
-      result: settledUpAccount,
+      result: settledGroups,
     });
   } catch (err) {
     res.status(HttpCodes.InternalServerError).send({

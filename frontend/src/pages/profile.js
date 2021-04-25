@@ -64,6 +64,14 @@ class Profile extends Component {
       });
   }
 
+  componentWillUnmount() {
+    const alert = {
+      type: '',
+      message: '',
+    };
+    this.props.setAlertMessage(alert);
+  }
+
   onSaveClick(e) {
     e.preventDefault();
     const {

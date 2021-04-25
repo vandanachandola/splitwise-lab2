@@ -35,6 +35,7 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false,
+    poolSize: process.env.MONGO_POOLSIZE || 5,
   })
   .then(() => {
     app.listen(config.server.port);

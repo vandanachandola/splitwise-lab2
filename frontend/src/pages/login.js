@@ -29,6 +29,14 @@ class Login extends Component {
     this.onLoginClick = this.onLoginClick.bind(this);
   }
 
+  componentWillUnmount() {
+    const alert = {
+      type: '',
+      message: '',
+    };
+    this.props.setAlertMessage(alert);
+  }
+
   onLoginClick(e) {
     e.preventDefault();
     const { emailId, password } = this.state;
