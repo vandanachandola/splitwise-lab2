@@ -4,7 +4,11 @@ import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import axios from 'axios';
 
-import { setCurrentUser, setAlertMessage } from '../redux-store/actions/index';
+import {
+  setCurrentUser,
+  setAlertMessage,
+  setUserProfile,
+} from '../redux-store/actions/index';
 import NavigationWhite from '../components/navigation-white';
 
 import logo from '../images/default-group-logo.svg';
@@ -12,6 +16,7 @@ import FormErrors from '../shared/form-errors';
 import config from '../shared/config';
 import '../shared/styles.css';
 import AlertType from '../enums/alert-type';
+import UserAuth from '../shared/user-auth';
 
 class Login extends Component {
   constructor() {
@@ -65,11 +70,52 @@ class Login extends Component {
           }
         }
       })
+      .then(() => this.getUser())
       .catch((err) => {
         if (err.response) {
           const alert = {
             type: AlertType.Error,
             message: err.response.data.message.message,
+          };
+          this.props.setAlertMessage(alert);
+        }
+      });
+  }
+
+  getUser() {
+    const userId = UserAuth.getUserId();
+    axios
+      .get(`${config.server.url}/api/users/get-user`, {
+        params: { userId },
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          if (response.data.result) {
+            const user = {
+              id: response.data.result._id,
+              profilePicture: response.data.result.profilePicture,
+              emailId: response.data.result.emailId,
+              name: response.data.result.name,
+              phoneNo: response.data.result.phoneNo,
+              defaultCurrency: response.data.result.defaultCurrency,
+              timeZone: response.data.result.timeZone,
+              language: response.data.result.language,
+            };
+            this.props.setUserProfile(user);
+          } else {
+            const alert = {
+              type: AlertType.Error,
+              message: response.data.message,
+            };
+            this.props.setAlertMessage(alert);
+          }
+        }
+      })
+      .catch((err) => {
+        if (err.response) {
+          const alert = {
+            type: AlertType.Error,
+            message: err.response.data.message,
           };
           this.props.setAlertMessage(alert);
         }
@@ -228,6 +274,7 @@ function mapDispatchToProps(dispatch) {
   return {
     setCurrentUser: (user) => dispatch(setCurrentUser(user)),
     setAlertMessage: (alert) => dispatch(setAlertMessage(alert)),
+    setUserProfile: (profile) => dispatch(setUserProfile(profile)),
   };
 }
 
