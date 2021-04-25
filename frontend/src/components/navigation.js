@@ -6,7 +6,6 @@ import Avatar from '@material-ui/core/Avatar';
 
 import defaultAvatar from '../images/default-avatar.png';
 import logo from '../images/default-group-logo.svg';
-import config from '../shared/config';
 import {
   logoutCurrentUser,
   setUserProfile,
@@ -15,40 +14,6 @@ import {
 const Navigation = (props) => {
   const history = useHistory();
   const { userName, profilePicture } = props;
-
-  // const getUserInfo = () => {
-  //   axios
-  //     .get(`${config.server.url}/api/users/get-user`, {
-  //       params: {
-  //         userId,
-  //       },
-  //     })
-  //     .then((response) => {
-  //       if (response.status === 200) {
-  //         const user = {
-  //           id: response.data.result._id,
-  //           profilePicture: response.data.result.profilePicture,
-  //           emailId: response.data.result.emailId,
-  //           name: response.data.result.name,
-  //           phoneNo: response.data.result.phoneNo,
-  //           defaultCurrency: response.data.result.defaultCurrency,
-  //           timeZone: response.data.result.timeZone,
-  //           language: response.data.result.language,
-  //         };
-
-  //         props.setUserProfile(user);
-  //       }
-  //     })
-  //     .catch((err) => {
-  //       if (err.response) {
-  //         console.log();
-  //       }
-  //     });
-  // };
-
-  // if (!profilePicture) {
-  //   getUserInfo();
-  // }
 
   return (
     <Navbar
@@ -69,13 +34,7 @@ const Navigation = (props) => {
       <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
         <Nav>
           <div style={{ display: 'flex' }}>
-            {profilePicture && (
-              <Avatar
-                alt={userName}
-                src={`${config.server.url}/${profilePicture}`}
-              />
-            )}
-            {!profilePicture && <Avatar alt={userName} src={defaultAvatar} />}
+            <Avatar alt={userName} src={profilePicture || defaultAvatar} />
 
             <NavDropdown
               style={{ color: 'white' }}
@@ -123,7 +82,7 @@ const Navigation = (props) => {
 function mapStateToProps(state) {
   return {
     userId: state.currentUser ? state.currentUser.id : null,
-    userName: state.currentUser ? state.currentUser.name : null,
+    userName: state.userProfile ? state.userProfile.name : null,
     profilePicture: state.userProfile ? state.userProfile.profilePicture : null,
   };
 }

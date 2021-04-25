@@ -22,6 +22,7 @@ import '../shared/styles.css';
 import config from '../shared/config';
 import UserAuth from '../shared/user-auth';
 import defaultAvatar from '../images/default-avatar.png';
+import TransactionType from '../enums/transaction-type';
 
 const styles = () => ({
   root: {
@@ -98,6 +99,8 @@ class Dashboard extends Component {
       showModal: false,
       selectedUserName: '',
       selectedUserId: '',
+      selectedGroupId: '',
+      selectedGroupName: '',
       isSettleUpSuccess: false,
     };
 
@@ -108,9 +111,7 @@ class Dashboard extends Component {
   }
 
   componentDidMount() {
-    this.getDashboardInfo();
-    this.getBorrowedFromInfo();
-    this.getLendedToInfo();
+    this.refreshDashboard();
   }
 
   handleClose() {
@@ -131,8 +132,10 @@ class Dashboard extends Component {
   onUserSelect(e, value) {
     console.log(value);
     this.setState({
-      selectedUserName: value.name,
+      selectedUserName: value.borrowerName,
       selectedUserId: value.id,
+      selectedGroupId: value.groupId,
+      selectedGroupName: value.groupName,
     });
   }
 
@@ -174,21 +177,30 @@ class Dashboard extends Component {
         },
       })
       .then((response) => {
+        let totalExpense = 0;
         if (response.status === 200) {
           const youOweInfo = [];
           if (response.data.result && response.data.result.length > 0) {
             const expenseInfo = response.data.result[0];
             const userInfo = response.data.result[1];
 
-            expenseInfo.forEach((element) => {
-              const user = userInfo.filter(
-                (item) => item._id === element.lenderId
-              )[0];
+            userInfo.forEach((element) => {
+              const expenses = expenseInfo.filter(
+                (item) => item.lenderId === element._id
+              );
+
+              let totalExpenseForUser = 0;
+              expenses.forEach((expense) => {
+                totalExpenseForUser += expense.expenseAmount;
+              });
+              totalExpense += totalExpenseForUser;
+
               const info = {
-                id: user._id,
-                amount: element.expense,
-                name: user.name,
-                profile_picture: user.profilePicture,
+                id: element._id,
+                expenses,
+                profile_picture: element.profilePicture,
+                totalExpenseForUser,
+                lenderName: element.name,
               };
               youOweInfo.push(info);
             });
@@ -198,6 +210,12 @@ class Dashboard extends Component {
             errorMsg: '',
           });
         }
+        return totalExpense;
+      })
+      .then((totalExpense) => {
+        this.setState({
+          youOwe: totalExpense,
+        });
       })
       .catch((err) => {
         if (err.response) {
@@ -216,21 +234,30 @@ class Dashboard extends Component {
         },
       })
       .then((response) => {
+        let totalExpense = 0;
         if (response.status === 200) {
           const youAreOwedInfo = [];
           if (response.data.result && response.data.result.length > 0) {
             const expenseInfo = response.data.result[0];
             const userInfo = response.data.result[1];
 
-            expenseInfo.forEach((element) => {
-              const user = userInfo.filter(
-                (item) => item._id === element.borrowerId
-              )[0];
+            userInfo.forEach((element) => {
+              const expenses = expenseInfo.filter(
+                (item) => item.borrowerId === element._id
+              );
+
+              let totalExpenseForUser = 0;
+              expenses.forEach((expense) => {
+                totalExpenseForUser += expense.expenseAmount;
+              });
+              totalExpense += totalExpenseForUser;
+
               const info = {
-                id: user._id,
-                amount: element.expense,
-                name: user.name,
-                profile_picture: user.profilePicture,
+                id: element._id,
+                expenses,
+                profile_picture: element.profilePicture,
+                totalExpenseForUser,
+                borrowerName: element.name,
               };
               youAreOwedInfo.push(info);
             });
@@ -240,6 +267,12 @@ class Dashboard extends Component {
             errorMsg: '',
           });
         }
+        return totalExpense;
+      })
+      .then((totalExpense) => {
+        this.setState({
+          youAreOwed: totalExpense,
+        });
       })
       .catch((err) => {
         if (err.response) {
@@ -264,13 +297,13 @@ class Dashboard extends Component {
             successMsg: response.data.message,
             errorMsg: '',
           });
-          // this.recordTransaction();
         }
         return response.data.result;
       })
       .then(() => {
-        this.getDashboardInfo();
+        this.refreshDashboard();
       })
+      .then(() => this.recordTransaction())
       .catch((err) => {
         if (err.response) {
           this.setState({
@@ -282,30 +315,37 @@ class Dashboard extends Component {
       });
   }
 
+  refreshDashboard() {
+    // this.getDashboardInfo();
+    this.getBorrowedFromInfo();
+    this.getLendedToInfo();
+  }
+
   recordTransaction() {
-    const { selectedUserName, selectedUserId } = this.state;
+    const {
+      selectedUserName,
+      selectedUserId,
+      selectedGroupId,
+      selectedGroupName,
+    } = this.state;
     const entries = [
       {
-        description: ` settled up with ${selectedUserName}.`,
+        description: ` settled up with ${selectedUserName} in group "${selectedGroupName}".`,
         userName: UserAuth.getName(),
         userId: UserAuth.getUserId(),
-      },
-      {
-        description: ` settled up with ${UserAuth.getName()}.`,
-        userName: selectedUserName,
-        userId: selectedUserId,
       },
     ];
 
     entries.forEach((item) => {
       const data = {
         userId: item.userId,
-        groupId: null,
+        groupId: selectedGroupId,
         userName: item.userName,
-        groupName: null,
+        groupName: selectedGroupName,
         description: item.description,
+        type: TransactionType.SettleUp,
       };
-      axios.post(`${config.server.url}/api/groups/transaction`, data);
+      axios.post(`${config.server.url}/api/transactions/transaction`, data);
     });
   }
 
@@ -388,6 +428,7 @@ class Dashboard extends Component {
                     </Col>
                   </Row>
                 </div>
+
                 <Row>
                   <Col>
                     <h6 style={{ textAlign: 'center', paddingTop: '0.5rem' }}>
@@ -406,7 +447,7 @@ class Dashboard extends Component {
                             <Row>
                               <Col sm={2} style={{ width: '3rem !important' }}>
                                 <Avatar
-                                  alt={item.name}
+                                  alt={item.lenderName}
                                   src={
                                     item.profile_picture
                                       ? item.profile_picture
@@ -417,12 +458,38 @@ class Dashboard extends Component {
                               </Col>
                               <Col sm={10} style={{ width: '9rem !important' }}>
                                 <div className={classes.username}>
-                                  {item.name}
+                                  {item.lenderName}
                                 </div>
                                 <div className={classes.youOweDescriptiveText}>
-                                  you owe {numeral(item.amount).format('$0.00')}
+                                  you owe{' '}
+                                  {numeral(item.totalExpenseForUser).format(
+                                    '$0.00'
+                                  )}{' '}
                                 </div>
                               </Col>
+                            </Row>
+
+                            <Row>
+                              <ul
+                                style={{
+                                  marginLeft: '5rem',
+                                  fontSize: 'small',
+                                }}
+                              >
+                                {item.expenses.map((individualExpense) => (
+                                  <li>
+                                    <span
+                                      className={classes.youOweDescriptiveText}
+                                    >
+                                      {numeral(
+                                        individualExpense.expenseAmount
+                                      ).format('$0.00')}
+                                    </span>{' '}
+                                    for &quot;{individualExpense.expenseName}
+                                    &quot;.
+                                  </li>
+                                ))}
+                              </ul>
                             </Row>
                           </ListGroup.Item>
                         </ListGroup>
@@ -430,7 +497,6 @@ class Dashboard extends Component {
                     ))}
                   </Col>
                   <div style={{ borderLeft: '1px #ddd solid' }} />
-
                   <Col>
                     <h6 style={{ textAlign: 'center', paddingTop: '0.5rem' }}>
                       YOU ARE OWED
@@ -447,7 +513,7 @@ class Dashboard extends Component {
                             <Row>
                               <Col sm={2} style={{ width: '3rem !important' }}>
                                 <Avatar
-                                  alt={item.name}
+                                  alt={item.borrowerName}
                                   src={
                                     item.profile_picture
                                       ? item.profile_picture
@@ -458,15 +524,42 @@ class Dashboard extends Component {
                               </Col>
                               <Col sm={10} style={{ width: '9rem !important' }}>
                                 <div className={classes.username}>
-                                  {item.name}
+                                  {item.borrowerName}
                                 </div>
                                 <div
                                   className={classes.youAreOwedDescriptiveText}
                                 >
                                   owes you{' '}
-                                  {numeral(item.amount).format('$0.00')}
+                                  {numeral(item.totalExpenseForUser).format(
+                                    '$0.00'
+                                  )}
                                 </div>
                               </Col>
+                            </Row>
+
+                            <Row>
+                              <ul
+                                style={{
+                                  marginLeft: '5rem',
+                                  fontSize: 'small',
+                                }}
+                              >
+                                {item.expenses.map((individualExpense) => (
+                                  <li>
+                                    <span
+                                      className={
+                                        classes.youAreOwedDescriptiveText
+                                      }
+                                    >
+                                      {numeral(
+                                        individualExpense.expenseAmount
+                                      ).format('$0.00')}
+                                    </span>{' '}
+                                    for &quot;{individualExpense.expenseName}
+                                    &quot;.
+                                  </li>
+                                ))}
+                              </ul>
                             </Row>
                           </ListGroup.Item>
                         </ListGroup>
@@ -492,7 +585,7 @@ class Dashboard extends Component {
                 <Autocomplete
                   id="combo-box-demo"
                   options={Array.from(owedList)}
-                  getOptionLabel={(option) => option.name}
+                  getOptionLabel={(option) => option.borrowerName}
                   onChange={this.onUserSelect}
                   size="small"
                   renderInput={(params) => (

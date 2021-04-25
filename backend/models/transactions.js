@@ -5,9 +5,11 @@ const { Schema } = mongoose;
 const transactionSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User' },
+    userName: { type: String },
     groupId: { type: Schema.Types.ObjectId, ref: 'Group' },
+    groupName: { type: String },
     description: { type: String },
-    type: { type: String },
+    type: { type: Number },
   },
   { timestamps: true }
 );

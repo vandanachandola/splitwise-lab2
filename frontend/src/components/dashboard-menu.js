@@ -3,10 +3,13 @@ import { Nav } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 import { withStyles } from '@material-ui/styles';
 import axios from 'axios';
+import LocalOfferIcon from '@material-ui/icons/LocalOffer';
+import FlagIcon from '@material-ui/icons/Flag';
+import ListIcon from '@material-ui/icons/List';
+import DraftsIcon from '@material-ui/icons/Drafts';
 
 import config from '../shared/config';
 import UserAuth from '../shared/user-auth';
-import InviteStatus from '../enums/invite-status';
 
 const styles = () => ({
   root: {
@@ -80,6 +83,9 @@ class DashboardMenu extends Component {
             className={selectedLink === 'dashboard' ? classes.selected : ''}
           >
             <Nav.Link className={classes.link} eventKey={1}>
+              <DraftsIcon
+                style={{ fontSize: 'medium', marginRight: '0.5rem' }}
+              />
               Dashboard
             </Nav.Link>
           </LinkContainer>
@@ -88,6 +94,7 @@ class DashboardMenu extends Component {
             className={selectedLink === 'activity' ? classes.selected : ''}
           >
             <Nav.Link className={classes.link} eventKey={2}>
+              <FlagIcon style={{ fontSize: 'medium', marginRight: '0.5rem' }} />
               Recent activity
             </Nav.Link>
           </LinkContainer>
@@ -96,6 +103,7 @@ class DashboardMenu extends Component {
             className={selectedLink === 'all-groups' ? classes.selected : ''}
           >
             <Nav.Link className={classes.link} eventKey={3}>
+              <ListIcon style={{ fontSize: 'medium', marginRight: '0.5rem' }} />
               All groups
             </Nav.Link>
           </LinkContainer>
@@ -111,8 +119,14 @@ class DashboardMenu extends Component {
               className={
                 selectedLink === `group_${input._id}` ? classes.selected : ''
               }
+              onClick={() => {
+                this.props.navigation.navigate(`/group/${input._id}`);
+              }}
             >
               <Nav.Link className={classes.link} eventKey={index + 4}>
+                <LocalOfferIcon
+                  style={{ fontSize: 'medium', marginRight: '0.5rem' }}
+                />
                 {input.name}
               </Nav.Link>
             </LinkContainer>

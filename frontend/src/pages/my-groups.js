@@ -1,14 +1,6 @@
 import axios from 'axios';
 import React, { Component } from 'react';
-import {
-  Alert,
-  Button,
-  Card,
-  Col,
-  Container,
-  Modal,
-  Row,
-} from 'react-bootstrap';
+import { Alert, Button, Card, Modal } from 'react-bootstrap';
 import { withStyles } from '@material-ui/styles';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
@@ -20,6 +12,7 @@ import config from '../shared/config';
 import InviteStatus from '../enums/invite-status';
 import { setAlertMessage } from '../redux-store/actions/index';
 import AlertType from '../enums/alert-type';
+import defaultGroupLogo from '../images/default-group-logo.svg';
 
 const styles = () => ({
   root: {
@@ -228,7 +221,7 @@ class MyGroups extends Component {
                   <img
                     className={classes.groupPicture}
                     alt={input.name}
-                    src={input.groupPicture}
+                    src={input.groupPicture || defaultGroupLogo}
                   />
 
                   <Card.Title className={classes.title}>

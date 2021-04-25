@@ -7,6 +7,7 @@ const passport = require('passport');
 const config = require('./config');
 const userRoute = require('./routes/user-route');
 const groupRoute = require('./routes/group-route');
+const transactionRoute = require('./routes/transaction-route');
 
 const app = express();
 
@@ -27,6 +28,7 @@ require('./lib/passport')(passport);
 
 app.use('/api/users', userRoute);
 app.use('/api/groups', groupRoute);
+app.use('/api/transactions', transactionRoute);
 
 mongoose
   .connect(config.db.conn, {

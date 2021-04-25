@@ -138,14 +138,14 @@ class Profile extends Component {
         <Navigation />
 
         {this.props.alert &&
-          this.props.alert.message.length > 0 &&
+          this.props.alert.message &&
           this.props.alert.type === AlertType.Error && (
             <Alert variant="danger" style={{ margin: '1rem' }}>
               {this.props.alert.message}
             </Alert>
           )}
         {this.props.alert &&
-          this.props.alert.message.length > 0 &&
+          this.props.alert.message &&
           this.props.alert.type === AlertType.Success && (
             <Alert variant="success" style={{ margin: '1rem' }}>
               {this.props.alert.message}

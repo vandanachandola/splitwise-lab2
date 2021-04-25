@@ -23,6 +23,7 @@ import '../shared/styles.css';
 import config from '../shared/config';
 import UserAuth from '../shared/user-auth';
 import itemImg from '../images/item.png';
+import TransactionType from '../enums/transaction-type';
 
 const styles = () => ({
   root: {
@@ -110,6 +111,8 @@ class Group extends Component {
   handleOpen() {
     this.setState({
       showExpenseModal: true,
+      description: '',
+      expense: 0,
     });
   }
 
@@ -216,29 +219,32 @@ class Group extends Component {
 
   recordTransaction(response) {
     const { groupId, groupName } = this.state;
-    const expense = numeral(response.expense).format('$0.00');
+    const expense = numeral(response.totalExpense).format('$0.00');
     const data = {
       userId: UserAuth.getUserId(),
       groupId,
       userName: UserAuth.getName(),
       groupName,
       description: ` paid ${expense} for '${response.description}' in "${groupName}".`,
+      type: TransactionType.AddExpense,
     };
-    axios.post(`${config.server.url}/api/groups/transaction`, data);
+    axios.post(`${config.server.url}/api/transactions/transaction`, data);
   }
 
   addAnExpense(description, expense) {
-    const { groupId } = this.state;
+    const { groupId, groupName } = this.state;
     axios
       .post(`${config.server.url}/api/groups/new-expense`, {
         lenderId: UserAuth.getUserId(),
         groupId,
+        groupName,
         description,
         totalExpense: expense,
         lenderName: UserAuth.getName(),
       })
       .then((response) => {
         if (response.status === 200) {
+          console.log(response);
           this.setState({
             successMsg: response.data.message,
             errorMsg: '',
@@ -246,9 +252,11 @@ class Group extends Component {
         }
         return response.data.result;
       })
-      //   .then((response) => {
-      //     this.recordTransaction(response);
-      //   })
+      .then((response) => {
+        if (response) {
+          this.recordTransaction(response);
+        }
+      })
       .then(() => {
         this.handleClose();
       })
@@ -279,6 +287,7 @@ class Group extends Component {
       })
       .then((response) => {
         if (response.status === 200) {
+          // response.data.result ?
           this.setState({
             successMsg: response.data.message,
             errorMsg: '',
@@ -334,9 +343,6 @@ class Group extends Component {
             return response.data.result;
           })
           .then(() => this.getComments())
-          //   .then((response) => {
-          //     this.recordTransaction(response);
-          //   })
           .catch((err) => {
             if (err.response.status === 500) {
               this.setState({
@@ -465,24 +471,39 @@ class Group extends Component {
                 <Modal.Title>Add an expense</Modal.Title>
               </Modal.Header>
               <Modal.Body>
-                <Form.Group>
-                  <Form.Label>Description </Form.Label>
-                  <Form.Control
-                    type="text"
-                    onChange={this.descriptionChange}
-                    value={description}
-                    placeholder="Enter a description"
-                  />
-                </Form.Group>
-                <Form.Group>
-                  <Form.Label>Expense </Form.Label>
-                  <Form.Control
-                    type="number"
-                    onChange={this.expenseChange}
-                    value={expense}
-                    placeholder="name input"
-                  />
-                </Form.Group>
+                <Container>
+                  <Row>
+                    <Col xs="3">
+                      <img
+                        src={itemImg}
+                        alt="item"
+                        style={{
+                          width: '5rem',
+                          height: '5rem',
+                          marginRight: '1rem',
+                        }}
+                      />
+                    </Col>
+                    <Col>
+                      <Form.Group>
+                        <Form.Control
+                          type="text"
+                          onChange={this.descriptionChange}
+                          value={description}
+                          placeholder="Enter a description"
+                        />
+                      </Form.Group>
+                      <Form.Group>
+                        <Form.Control
+                          type="number"
+                          onChange={this.expenseChange}
+                          value={expense}
+                          placeholder="0.00"
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </Container>
               </Modal.Body>
               <Modal.Footer>
                 <Button variant="secondary" onClick={this.handleClose}>
@@ -540,6 +561,10 @@ class Group extends Component {
                               fontSize: 'small',
                               marginTop: '-1rem',
                               marginRight: '-1rem',
+                              display:
+                                input.userId === UserAuth.getUserId()
+                                  ? 'inline-flex'
+                                  : 'none',
                             }}
                             onClick={() => this.deleteComment(input)}
                           >

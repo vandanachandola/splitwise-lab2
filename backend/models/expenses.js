@@ -16,6 +16,7 @@ const expenseSchema = new Schema(
         borrowerId: { type: Schema.Types.ObjectId, ref: 'User' },
         lenderId: { type: Schema.Types.ObjectId, ref: 'User' },
         lenderName: { type: String },
+        groupName: { type: String },
         expense: { type: Number },
         isSettled: { type: Boolean },
       },

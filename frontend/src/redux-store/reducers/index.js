@@ -37,6 +37,12 @@ function rootReducer(state = initialState, action = {}) {
       return {
         ...state,
         currentUser: action.payload,
+        userProfile: {
+          ...state.userProfile,
+          id: action.payload.id,
+          name: action.payload.name,
+          emailId: action.payload.emailId,
+        },
         isAuthenticated: !isEmpty(action.payload),
       };
     case SET_ALERT_MSG:

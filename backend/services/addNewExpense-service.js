@@ -4,7 +4,14 @@ const Group = require('../models/group');
 const Expense = require('../models/expenses');
 
 async function handleRequestInternal(req, callback) {
-  const { groupId, description, totalExpense, lenderId, lenderName } = req;
+  const {
+    groupId,
+    groupName,
+    description,
+    totalExpense,
+    lenderId,
+    lenderName,
+  } = req;
 
   try {
     const currentGroup = await Group.findById(ObjectId(groupId));
@@ -23,6 +30,7 @@ async function handleRequestInternal(req, callback) {
       allMembers.forEach((memberId) => {
         expenseDetails.push({
           groupId: ObjectId(groupId),
+          groupName,
           borrowerId: ObjectId(memberId),
           lenderId: ObjectId(lenderId),
           lenderName,
@@ -49,7 +57,7 @@ async function handleRequestInternal(req, callback) {
         },
       });
     } else {
-      callback(null, {
+      callback('Error', {
         result: {
           message: `No members in group currently.`,
           result: null,

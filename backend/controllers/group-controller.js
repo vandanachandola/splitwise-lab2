@@ -6,6 +6,8 @@ const Group = require('../models/group');
 const User = require('../models/user');
 const Expense = require('../models/expenses');
 const kafka = require('../kafka/client');
+const BorrowDetail = require('../classes/borrow-detail');
+const LendDetail = require('../classes/lend-detail');
 
 // create new group
 const createGroupInternal = async (req, res) => {
@@ -33,7 +35,7 @@ const createGroupInternal = async (req, res) => {
       result: existingGroup,
     });
   } else {
-    const groupPicture = req.file.location ? req.file.location : null;
+    const groupPicture = req.file ? req.file.location : null;
     try {
       const newGroup = new Group({
         name,
@@ -273,16 +275,26 @@ const getBorrowedFromListInternal = async (req, res) => {
 
     if (borrowedByMe.length > 0) {
       const borrowedIdsList = [];
+      const expenseName = borrowedByMe.map((element) => element.description);
       const expenseDetails = borrowedByMe.map((element) =>
         element.expenseDetails.toObject()
       );
+
       if (expenseDetails.length > 0) {
         const expensesList = [];
-        expenseDetails[0].forEach((element) => {
-          if (element.borrowerId.toString() === userId) {
-            borrowedIdsList.push(element.lenderId.toString());
-            expensesList.push(element);
-          }
+        expenseDetails.forEach((borrowerArr, expenseIndex) => {
+          borrowerArr.forEach((borrower) => {
+            if (borrower.borrowerId.toString() === userId) {
+              const itemToBeAdded = new BorrowDetail(
+                borrower.lenderId,
+                borrower.lenderName,
+                expenseName[expenseIndex],
+                borrower.expense
+              );
+              borrowedIdsList.push(borrower.lenderId.toString());
+              expensesList.push(itemToBeAdded);
+            }
+          });
         });
         const lender = await User.find({
           _id: {
@@ -323,16 +335,24 @@ const getLendedToListInternal = async (req, res) => {
 
     if (lendedByMe.length > 0) {
       const lendedIdsList = [];
+      const expenseName = lendedByMe.map((element) => element.description);
       const expenseDetails = lendedByMe.map((element) =>
         element.expenseDetails.toObject()
       );
       if (expenseDetails.length > 0) {
         const expensesList = [];
-        expenseDetails[0].forEach((element) => {
-          if (element.lenderId.toString() === userId) {
-            lendedIdsList.push(element.borrowerId.toString());
-            expensesList.push(element);
-          }
+        expenseDetails.forEach((lenderArr, expenseIndex) => {
+          lenderArr.forEach((lender) => {
+            if (lender.lenderId.toString() === userId) {
+              const itemToBeAdded = new LendDetail(
+                lender.borrowerId,
+                expenseName[expenseIndex],
+                lender.expense
+              );
+              lendedIdsList.push(lender.borrowerId.toString());
+              expensesList.push(itemToBeAdded);
+            }
+          });
         });
         const borrower = await User.find({
           _id: {

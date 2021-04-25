@@ -115,7 +115,7 @@ const setProfileInternal = async (req, res) => {
     });
   }
 
-  const profilePicture = req.file.location;
+  const profilePicture = req.file ? req.file.location : null;
   try {
     await User.findByIdAndUpdate(
       { _id: ObjectId(id) },

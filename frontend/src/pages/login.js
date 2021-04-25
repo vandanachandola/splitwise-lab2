@@ -47,12 +47,7 @@ class Login extends Component {
               name: response.data.result.name,
               token: response.data.token,
             };
-            const alert = {
-              type: AlertType.Success,
-              message: response.data.message,
-            };
             this.props.setCurrentUser(user);
-            this.props.setAlertMessage(alert);
           } else {
             const alert = {
               type: AlertType.Error,

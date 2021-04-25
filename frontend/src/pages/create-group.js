@@ -15,6 +15,7 @@ import FormErrors from '../shared/form-errors';
 import search from '../shared/search';
 import AlertType from '../enums/alert-type';
 import { setAlertMessage } from '../redux-store/actions/index';
+import TransactionType from '../enums/transaction-type';
 
 class CreateGroup extends Component {
   constructor() {
@@ -111,17 +112,17 @@ class CreateGroup extends Component {
           };
           this.props.setAlertMessage(alert);
           return {
-            groupId: response.data.result.id,
+            groupId: response.data.result._id,
             groupName: response.data.result.name,
           };
         }
         return null;
       })
-      // .then((group) => {
-      //   if (group) {
-      //     recordTransaction(group.groupId, group.groupName);
-      //   }
-      // })
+      .then((group) => {
+        if (group) {
+          this.recordTransaction(group.groupId, group.groupName);
+        }
+      })
       .catch((err) => {
         if (err.response.status === 500 || err.response.status === 400) {
           const alert = {
@@ -140,8 +141,9 @@ class CreateGroup extends Component {
       userName: UserAuth.getName(),
       groupName,
       description: ` created the group "${groupName}"`,
+      type: TransactionType.CreateGroup,
     };
-    axios.post(`${config.server.url}/api/groups/transaction`, data);
+    axios.post(`${config.server.url}/api/transactions/transaction`, data);
   }
 
   validateForm() {
@@ -155,7 +157,7 @@ class CreateGroup extends Component {
 
     switch (fieldName) {
       case 'Name':
-        isNameValid = value.match(/^[a-zA-Z0-9_]*$/i);
+        isNameValid = value.match(/^[a-zA-Z0-9_\s]*$/i);
         formErrors.Name = isNameValid
           ? ''
           : 'Enter a valid group name containing only alphanumeric values and/or underscore.';

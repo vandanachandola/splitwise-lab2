@@ -23,6 +23,7 @@ import InviteStatus from '../enums/invite-status';
 import { setAlertMessage } from '../redux-store/actions/index';
 import AlertType from '../enums/alert-type';
 import DashboardMenu from '../components/dashboard-menu';
+import defaultGroupLogo from '../images/default-group-logo.svg';
 
 const styles = () => ({
   root: {
@@ -268,7 +269,7 @@ class AllGroups extends Component {
                             <img
                               className={classes.groupPicture}
                               alt={input.name}
-                              src={input.groupPicture}
+                              src={input.groupPicture || defaultGroupLogo}
                             />
 
                             <Card.Title className={classes.title}>
