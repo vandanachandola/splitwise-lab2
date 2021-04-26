@@ -13,6 +13,7 @@ import Profile from './pages/profile';
 import AllGroups from './pages/all-groups';
 import Group from './pages/group';
 import UserAuth from './shared/user-auth';
+import LandingPage from './pages/landing-page';
 
 const redirectToDashboard = () => <Redirect to="/dashboard" />;
 
@@ -30,7 +31,7 @@ function App() {
         path="/"
         exact
         trueComponent={redirectToDashboard}
-        falseComponent={Login}
+        falseComponent={LandingPage}
         decisionFunc={isUserLoggedIn}
       />
       <Route path="/login">
