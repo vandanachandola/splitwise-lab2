@@ -25,6 +25,10 @@ app.use((req, res, next) => {
 
 require('./lib/passport')(passport);
 
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static('../frontend/build'));
+}
+
 const kafkaConnection = require('./kafka-backend/Connection');
 
 function handleTopicRequest(topicName) {
@@ -57,15 +61,16 @@ function handleTopicRequest(topicName) {
 }
 
 // mongodb connection
+const PORT = process.env.port || 5001;
 mongoose
-  .connect(config.db.conn, {
+  .connect(process.env.MONGODB_URI || config.db.conn, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false,
   })
   .then(() => {
-    app.listen(5001);
-    console.log('Listening on port', 5001);
+    app.listen(PORT);
+    console.log('Listening on port', PORT);
   })
   .catch((err) => {
     console.log(err);
