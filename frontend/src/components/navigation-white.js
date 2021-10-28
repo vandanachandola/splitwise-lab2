@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import logo from '../images/default-group-logo.svg';
 import { logoutCurrentUser } from '../redux-store/actions/index';
 
-const NavigationWhite = (props) => {
+const NavigationWhite = () => {
   const history = useHistory();
   return (
     <Navbar

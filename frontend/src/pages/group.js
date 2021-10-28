@@ -367,7 +367,6 @@ class Group extends Component {
       activeExpense,
       successMsg,
       errorMsg,
-      groupId,
       groupName,
       self,
       selectedLink,
