@@ -5,17 +5,52 @@ const { ObjectId } = require('mongodb');
 const HttpCodes = require('../enums/http-codes');
 const User = require('../models/user');
 const config = require('../config');
-const kafka = require('../kafka/client');
+// const kafka = require('../kafka/client');
 
 // login existing user
 const loginInternal = async (req, res) => {
-  kafka.make_request('api_req', req.body, 'login-service', (err, result) => {
-    if (err) {
-      res.status(HttpCodes.InternalServerError).send(result);
+  const { emailId, password } = req.body;
+  try {
+    const user = await User.findOne({ emailId });
+    if (user) {
+      const validPass = await bcrypt.compare(password, user.password);
+      if (validPass) {
+        const payload = {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        };
+
+        jwt.sign(
+          payload,
+          config.auth.secretOrKey,
+          { expiresIn: 31556926 },
+          (err, token) => {
+            res.status(HttpCodes.OK).send({
+              message: 'You have successfully logged in.',
+              result: user,
+              token,
+            });
+          }
+        );
+      } else {
+        res.status(HttpCodes.UnauthorizedClient).send({
+          message: 'Invalid credentials! Please try again.',
+          result: null,
+        });
+      }
     } else {
-      res.status(HttpCodes.OK).send(result);
+      res.status(HttpCodes.InternalServerError).send({
+        message: 'User not found.',
+        result: null,
+      });
     }
-  });
+  } catch (err) {
+    res.status(HttpCodes.InternalServerError).send({
+      message: 'Some error occurred.',
+      result: null,
+    });
+  }
 };
 
 // signup new user

@@ -75,7 +75,7 @@ class Login extends Component {
         if (err.response) {
           const alert = {
             type: AlertType.Error,
-            message: err.response.data.message.message,
+            message: err.response.data.message,
           };
           this.props.setAlertMessage(alert);
         }

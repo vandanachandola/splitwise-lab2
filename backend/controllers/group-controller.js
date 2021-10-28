@@ -5,7 +5,7 @@ const InviteStatus = require('../enums/invite-status');
 const Group = require('../models/group');
 const User = require('../models/user');
 const Expense = require('../models/expenses');
-const kafka = require('../kafka/client');
+// const kafka = require('../kafka/client');
 const BorrowDetail = require('../classes/borrow-detail');
 const LendDetail = require('../classes/lend-detail');
 
@@ -186,18 +186,67 @@ const leaveGroupInternal = async (req, res) => {
 
 // add new expense in group
 const addNewExpenseInternal = async (req, res) => {
-  kafka.make_request(
-    'api_req',
-    req.body,
-    'addNewExpense-service',
-    (err, result) => {
-      if (err) {
-        res.status(HttpCodes.InternalServerError).send(result);
-      } else {
-        res.status(HttpCodes.OK).send(result);
-      }
+  const {
+    groupId,
+    groupName,
+    description,
+    totalExpense,
+    lenderId,
+    lenderName,
+  } = req.body;
+
+  try {
+    const currentGroup = await Group.findById(ObjectId(groupId));
+
+    const allMembersWithOwner = currentGroup.members;
+    const allMembers = allMembersWithOwner.filter(
+      (member) => member.toString() !== lenderId
+    );
+
+    const individualExpense =
+      allMembers.length > 0 ? totalExpense / (allMembers.length + 1) : 0;
+
+    if (individualExpense > 0) {
+      const expenseDetails = [];
+      allMembers.forEach((memberId) => {
+        expenseDetails.push({
+          groupId: ObjectId(groupId),
+          groupName,
+          borrowerId: ObjectId(memberId),
+          lenderId: ObjectId(lenderId),
+          lenderName,
+          expense: individualExpense,
+          isSettled: false,
+        });
+      });
+
+      const newExpense = new Expense({
+        groupId: ObjectId(groupId),
+        description,
+        totalExpense,
+        lenderId: ObjectId(lenderId),
+        lenderName,
+        expenseDetails,
+        comments: [],
+      });
+      const expense = await newExpense.save();
+
+      res.status(HttpCodes.OK).send({
+        message: `You have successfully added expense.`,
+        result: expense,
+      });
+    } else {
+      res.status(HttpCodes.InternalServerError).send({
+        message: `No members in group currently.`,
+        result: null,
+      });
     }
-  );
+  } catch (err) {
+    res.status(HttpCodes.InternalServerError).send({
+      message: 'Unable to add expense, some error occured.',
+      result: err,
+    });
+  }
 };
 
 // get expenses by group id
@@ -385,50 +434,73 @@ const getLendedToListInternal = async (req, res) => {
 
 // post a comment
 const postCommentInternal = async (req, res) => {
-  kafka.make_request(
-    'api_req',
-    req.body,
-    'postComment-service',
-    (err, result) => {
-      if (err) {
-        res.status(HttpCodes.InternalServerError).send(result);
-      } else {
-        res.status(HttpCodes.OK).send(result);
-      }
-    }
-  );
+  const { expenseId, userId, userName, text } = req.body;
+
+  try {
+    const newComment = {
+      userId,
+      userName,
+      text,
+    };
+    const comment = await Expense.findByIdAndUpdate(
+      ObjectId(expenseId),
+      {
+        $push: { comments: newComment },
+      },
+      { new: true }
+    );
+    res.status(HttpCodes.OK).send({
+      message: `You have successfully added comment.`,
+      result: comment,
+    });
+  } catch (err) {
+    res.status(HttpCodes.InternalServerError).send({
+      message: 'Unable to add expense, some error occured.',
+      result: err,
+    });
+  }
 };
 
 // get all comments by expense id
 const getCommentsInternal = async (req, res) => {
-  kafka.make_request(
-    'api_req',
-    req.query,
-    'getComments-service',
-    (err, result) => {
-      if (err) {
-        res.status(HttpCodes.InternalServerError).send(result);
-      } else {
-        res.status(HttpCodes.OK).send(result);
-      }
-    }
-  );
+  const { expenseId } = req.query;
+  try {
+    const expenses = await Expense.find(ObjectId(expenseId));
+    const comments = expenses.map((element) => element.comments.toObject());
+    res.status(HttpCodes.OK).send({
+      message: ``,
+      result: comments,
+    });
+  } catch (err) {
+    res.status(HttpCodes.InternalServerError).send({
+      message: 'Unable to get comemnts, some error occured.',
+      result: err,
+    });
+  }
 };
 
 // delete a comment
 const deleteCommentInternal = async (req, res) => {
-  kafka.make_request(
-    'api_req',
-    req.body,
-    'deleteComment-service',
-    (err, result) => {
-      if (err) {
-        res.status(HttpCodes.InternalServerError).send(result);
-      } else {
-        res.status(HttpCodes.OK).send(result);
-      }
-    }
-  );
+  const { expenseId, commentId } = req.body;
+
+  try {
+    const comment = await Expense.findByIdAndUpdate(
+      ObjectId(expenseId),
+      {
+        $pull: { comments: { _id: ObjectId(commentId) } },
+      },
+      { new: true }
+    );
+    res.status(HttpCodes.OK).send({
+      message: `You have successfully deleted comment.`,
+      result: comment,
+    });
+  } catch (err) {
+    res.status(HttpCodes.InternalServerError).send({
+      message: 'Unable to add expense, some error occured.',
+      result: err,
+    });
+  }
 };
 
 // settle up expenses

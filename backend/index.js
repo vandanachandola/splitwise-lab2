@@ -24,22 +24,27 @@ app.use((req, res, next) => {
   next();
 });
 
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static('../frontend/build'));
+}
+
 require('./lib/passport')(passport);
 
 app.use('/api/users', userRoute);
 app.use('/api/groups', groupRoute);
 app.use('/api/transactions', transactionRoute);
 
+const PORT = process.env.port || 5000;
 mongoose
-  .connect(config.db.conn, {
+  .connect(process.env.MONGODB_URI || config.db.conn, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false,
     poolSize: process.env.MONGO_POOLSIZE || 5,
   })
   .then(() => {
-    app.listen(config.server.port);
-    console.log('Listening on port', config.server.port);
+    app.listen(PORT);
+    console.log('Listening on port', PORT);
   })
   .catch((err) => {
     console.log(err);
