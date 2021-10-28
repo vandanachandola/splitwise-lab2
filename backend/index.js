@@ -11,7 +11,7 @@ const transactionRoute = require('./routes/transaction-route');
 
 const app = express();
 
-app.use(cors({ origin: 'https://splitwise-backend-lab2.herokuapp.com' }));
+app.use(cors());
 app.use(bodyParser.json());
 app.use(passport.initialize());
 app.use((req, res, next) => {
