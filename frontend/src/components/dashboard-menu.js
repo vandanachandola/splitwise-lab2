@@ -46,10 +46,15 @@ class DashboardMenu extends Component {
       groups: [],
     };
     this.getMyGroups = this.getMyGroups.bind(this);
+    this.handleGroupClick = this.handleGroupClick.bind(this);
   }
 
   componentDidMount() {
     this.getMyGroups();
+  }
+
+  handleGroupClick(id) {
+    this.props.navigation.navigate(`/group/${id}`);
   }
 
   getMyGroups() {
@@ -120,7 +125,7 @@ class DashboardMenu extends Component {
                 selectedLink === `group_${input._id}` ? classes.selected : ''
               }
               onClick={() => {
-                this.props.navigation.navigate(`/group/${input._id}`);
+                this.handleGroupClick(input._id);
               }}
             >
               <Nav.Link className={classes.link} eventKey={index + 4}>
